@@ -1,0 +1,365 @@
+---
+title: Arabic text processing
+description: Comprehensive guide to handling Arabic text with diacritics, Urdu glyphs, scoring, and specialized utilities
+---
+
+Bitaboom provides a comprehensive suite of utilities for processing Arabic text, from basic character conversion to advanced scoring and analysis.
+
+## Arabic numeral conversion
+
+Convert Arabic-Indic numerals (٠-٩) to JavaScript numbers:
+
+```typescript
+import { arabicNumeralToNumber } from 'bitaboom';
+
+arabicNumeralToNumber("١٢٣"); // returns 123
+arabicNumeralToNumber("٥٠"); // returns 50
+arabicNumeralToNumber("abc١٢٣xyz"); // returns 123 (non-digits ignored)
+arabicNumeralToNumber(""); // returns NaN
+```
+
+The function maps these digits:
+- ٠ → 0, ١ → 1, ٢ → 2, ٣ → 3, ٤ → 4
+- ٥ → 5, ٦ → 6, ٧ → 7, ٨ → 8, ٩ → 9
+
+## Urdu symbol normalization
+
+Convert Urdu variants to standard Arabic equivalents:
+
+```typescript
+import { convertUrduSymbolsToArabic } from 'bitaboom';
+
+convertUrduSymbolsToArabic('ھذا'); // returns 'هذا'
+convertUrduSymbolsToArabic('ی'); // returns 'ي'
+```
+
+This handles:
+- ھ (Urdu heh) → ه (Arabic heh)
+- ی (Urdu yeh) → ي (Arabic yeh)
+
+## Arabic content scoring
+
+Calculate the proportion of Arabic characters in text:
+
+```typescript
+import { getArabicScore } from 'bitaboom';
+
+getArabicScore('مرحبا'); // returns ~1.0 (all Arabic)
+getArabicScore('Hello مرحبا'); // returns ~0.5 (mixed)
+getArabicScore('Hello World'); // returns 0 (no Arabic)
+getArabicScore(''); // returns 0
+```
+
+<Note>
+The score is calculated as Arabic characters divided by total non-whitespace, non-digit characters. Both Arabic and Western digits are excluded from the calculation.
+</Note>
+
+### Use cases
+
+<Accordion title="Language detection for routing">
+```typescript
+const text = getUserInput();
+const score = getArabicScore(text);
+
+if (score > 0.7) {
+  processAsArabic(text);
+} else if (score > 0.3) {
+  processAsBilingual(text);
+} else {
+  processAsEnglish(text);
+}
+```
+</Accordion>
+
+<Accordion title="Content validation">
+```typescript
+function validateArabicContent(text: string, minScore: number = 0.8) {
+  const score = getArabicScore(text);
+  if (score < minScore) {
+    throw new Error(`Expected primarily Arabic content, got ${(score * 100).toFixed(1)}%`);
+  }
+  return true;
+}
+```
+</Accordion>
+
+## Word counting
+
+Count words in both Arabic and English text:
+
+```typescript
+import { countWords } from 'bitaboom';
+
+countWords('بسم الله الرحمن الرحيم'); // returns 4
+countWords('Hello world'); // returns 2
+countWords(''); // returns 0
+countWords('  multiple   spaces  '); // returns 2
+```
+
+## Punctuation handling
+
+### Replace English punctuation with Arabic equivalents
+
+```typescript
+import { replaceEnglishPunctuationWithArabic } from 'bitaboom';
+
+replaceEnglishPunctuationWithArabic('كيف حالك?'); // returns 'كيف حالك؟'
+replaceEnglishPunctuationWithArabic('نعم; لا'); // returns 'نعم؛ لا'
+replaceEnglishPunctuationWithArabic('أولا, ثانيا'); // returns 'أولا، ثانيا'
+```
+
+Conversions:
+- `?` → `؟` (Arabic question mark)
+- `;` → `؛` (Arabic semicolon)
+- `,` → `،` (Arabic comma)
+
+### Find last punctuation
+
+```typescript
+import { findLastPunctuation } from 'bitaboom';
+
+const text = "Hello world! How are you?";
+const lastPuncIndex = findLastPunctuation(text);
+// Result: 24 (position of the last '?')
+
+const noPuncText = "Hello world";
+const notFound = findLastPunctuation(noPuncText);
+// Result: -1 (no punctuation found)
+```
+
+## Text cleaning
+
+### Clean extreme Arabic underscores
+
+Remove decorative tatweel (ـ) at line edges while preserving Hijri dates:
+
+```typescript
+import { cleanExtremeArabicUnderscores } from 'bitaboom';
+
+cleanExtremeArabicUnderscores('ـThis is a textـ'); // returns 'This is a text'
+cleanExtremeArabicUnderscores('1424هـ'); // returns '1424هـ' (preserved)
+```
+
+### Fix trailing wow (و)
+
+Correct spacing around the conjunction "و" in common phrases:
+
+```typescript
+import { fixTrailingWow } from 'bitaboom';
+
+fixTrailingWow('السلام عليكم و رحمة'); // returns 'السلام عليكم ورحمة'
+fixTrailingWow('عليكم و رحمة'); // returns 'عليكم ورحمة'
+```
+
+### Add spacing between Arabic text and numbers
+
+```typescript
+import { addSpaceBetweenArabicTextAndNumbers } from 'bitaboom';
+
+addSpaceBetweenArabicTextAndNumbers('الآية37'); // returns 'الآية 37'
+addSpaceBetweenArabicTextAndNumbers('صفحة١٢٣'); // returns 'صفحة ١٢٣'
+```
+
+## Advanced cleaning
+
+### Remove non-index signatures
+
+Remove single-digit numbers and stray dashes surrounded by Arabic text:
+
+```typescript
+import { removeNonIndexSignatures } from 'bitaboom';
+
+removeNonIndexSignatures('وهب 3 وقال'); // removes the '3'
+removeNonIndexSignatures('لوحه 121 الجرح'); // preserves '121' (multi-digit)
+```
+
+### Remove singular codes
+
+Strip single Arabic letters or digits in brackets:
+
+```typescript
+import { removeSingularCodes } from 'bitaboom';
+
+removeSingularCodes('[س]'); // returns ''
+removeSingularCodes('(س)'); // returns ''
+removeSingularCodes('[سورة]'); // preserved (multiple chars)
+```
+
+### Remove solitary Arabic letters
+
+Clean up isolated Arabic letters while preserving Hijri year markers:
+
+```typescript
+import { removeSolitaryArabicLetters } from 'bitaboom';
+
+removeSolitaryArabicLetters('ب ا الكلمات ت'); // returns 'ا الكلمات'
+removeSolitaryArabicLetters('1424 ه'); // preserves 'ه' (Hijri marker)
+```
+
+## Diacritic-insensitive matching
+
+Build flexible regular expressions for Arabic text search:
+
+```typescript
+import { makeDiacriticInsensitiveRegex } from 'bitaboom';
+
+const rx = makeDiacriticInsensitiveRegex('أنا إلى الآفاق');
+rx.test('انا الي الافاق'); // true - ignores hamza variants
+rx.test('اَنا إلى الآفاق'); // true - ignores diacritics
+```
+
+### Configuration options
+
+<Tabs>
+  <Tab title="Default behavior">
+  ```typescript
+  const rx = makeDiacriticInsensitiveRegex('أنا');
+  // Enables all equivalences by default:
+  // - alif variants (ا/أ/إ/آ)
+  // - ta marbuta/ha (ة/ه)
+  // - alif maqsura/ya (ى/ي)
+  // - tatweel tolerance
+  // - diacritic ignoring
+  ```
+  </Tab>
+  
+  <Tab title="Custom equivalences">
+  ```typescript
+  const rx = makeDiacriticInsensitiveRegex('أنا', {
+    equivalences: {
+      alif: true,              // ا/أ/إ/آ equivalent
+      taMarbutahHa: false,     // ة/ه NOT equivalent
+      alifMaqsurahYa: false    // ى/ي NOT equivalent
+    }
+  });
+  ```
+  </Tab>
+  
+  <Tab title="Strict matching">
+  ```typescript
+  const rx = makeDiacriticInsensitiveRegex('أنا', {
+    allowTatweel: false,      // No tatweel tolerance
+    ignoreDiacritics: false,  // Require exact diacritics
+    flexWhitespace: false,    // Require exact spacing
+    equivalences: {
+      alif: false,
+      taMarbutahHa: false,
+      alifMaqsurahYa: false
+    }
+  });
+  ```
+  </Tab>
+  
+  <Tab title="Global search">
+  ```typescript
+  const rx = makeDiacriticInsensitiveRegex('الله', {
+    flags: 'gu'  // Global + Unicode
+  });
+  
+  const text = 'بسم الله الرحمن الله الرحيم';
+  const matches = text.match(rx);
+  // Returns all occurrences
+  ```
+  </Tab>
+</Tabs>
+
+<Warning>
+The function throws an error if the input exceeds 5000 characters to prevent excessive pattern sizes.
+</Warning>
+
+## Real-world patterns
+
+### Normalize OCR output
+
+```typescript
+import {
+  convertUrduSymbolsToArabic,
+  replaceEnglishPunctuationWithArabic,
+  addSpaceBetweenArabicTextAndNumbers,
+  cleanExtremeArabicUnderscores
+} from 'bitaboom';
+
+function normalizeOCRText(text: string): string {
+  let result = text;
+  result = convertUrduSymbolsToArabic(result);
+  result = replaceEnglishPunctuationWithArabic(result);
+  result = addSpaceBetweenArabicTextAndNumbers(result);
+  result = cleanExtremeArabicUnderscores(result);
+  return result;
+}
+```
+
+### Validate bilingual content
+
+```typescript
+import { getArabicScore, countWords } from 'bitaboom';
+
+function validateBilingualBook(chapters: string[]) {
+  return chapters.map((chapter, index) => {
+    const score = getArabicScore(chapter);
+    const words = countWords(chapter);
+    
+    return {
+      chapter: index + 1,
+      words,
+      arabicScore: (score * 100).toFixed(1) + '%',
+      language: score > 0.7 ? 'Arabic' : score > 0.3 ? 'Mixed' : 'English'
+    };
+  });
+}
+```
+
+### Search with tolerance
+
+```typescript
+import { makeDiacriticInsensitiveRegex } from 'bitaboom';
+
+function searchArabicText(corpus: string[], query: string) {
+  const rx = makeDiacriticInsensitiveRegex(query, { flags: 'gu' });
+  
+  return corpus
+    .map((text, index) => {
+      const matches = text.match(rx);
+      return matches ? { index, count: matches.length, text } : null;
+    })
+    .filter(Boolean);
+}
+```
+
+## Best practices
+
+<Steps>
+  <Step title="Normalize before processing">
+    Always convert Urdu symbols and replace English punctuation before further processing:
+    ```typescript
+    let text = convertUrduSymbolsToArabic(rawText);
+    text = replaceEnglishPunctuationWithArabic(text);
+    ```
+  </Step>
+  
+  <Step title="Use scoring for routing">
+    Let `getArabicScore` determine the appropriate processing pipeline:
+    ```typescript
+    const score = getArabicScore(text);
+    if (score > 0.7) {
+      // Apply Arabic-specific processing
+    }
+    ```
+  </Step>
+  
+  <Step title="Preserve semantic markers">
+    Be careful with cleaning functions that might remove meaningful content:
+    ```typescript
+    // cleanExtremeArabicUnderscores preserves Hijri dates
+    // removeSolitaryArabicLetters preserves 'ه' in dates
+    ```
+  </Step>
+  
+  <Step title="Combine with preformatting">
+    For comprehensive text normalization, use the preformatting pipeline (see [preformatting guide](/guides/preformatting-pipeline)).
+  </Step>
+</Steps>
+
+<Tip>
+All Arabic text processing functions handle empty strings gracefully and return sensible defaults (0 for numeric functions, empty string for text functions).
+</Tip>

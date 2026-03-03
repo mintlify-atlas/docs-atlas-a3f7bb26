@@ -1,0 +1,125 @@
+---
+title: Transliteration utilities
+description: Functions for normalizing Arabic prefixes, handling transliterations, replacing salutations, and extracting initials.
+---
+
+## Arabic prefix normalization
+
+### normalizeArabicPrefixesToAl
+
+Replaces common Arabic prefixes (like 'Al-', 'Ar-', 'Ash-', etc.) with 'al-' in the text. Handles different variations of prefixes such as Ash- and Al- but not when the second word does not start with 'S'.
+
+<ParamField path="text" type="string">
+  The input text containing Arabic prefixes
+</ParamField>
+
+**Returns:** `string` - The modified text with standardized 'al-' prefixes.
+
+```typescript
+normalizeArabicPrefixesToAl("Ash-Shafiee"); // "al-Shafiee"
+normalizeArabicPrefixesToAl("Al-Bukhari"); // "al-Bukhari"
+```
+
+### removeArabicPrefixes
+
+Strips common Arabic prefixes like 'al-', 'bi-', 'fī', 'wa-', etc. from the beginning of words.
+
+<ParamField path="text" type="string">
+  The input text containing Arabic prefixes
+</ParamField>
+
+**Returns:** `string` - The modified text with prefixes stripped.
+
+```typescript
+removeArabicPrefixes("al-Bukhari"); // "Bukhari"
+```
+
+## Apostrophe handling
+
+### normalizeDoubleApostrophes
+
+Removes double occurrences of Arabic apostrophes such as ʿʿ or ʾʾ in the text.
+
+<ParamField path="text" type="string">
+  The input text containing double apostrophes
+</ParamField>
+
+**Returns:** `string` - The modified text with condensed apostrophes.
+
+```typescript
+normalizeDoubleApostrophes("ʿulamāʾʾ"); // "ʿulamāʾ"
+```
+
+## Salutation replacement
+
+### replaceSalutationsWithSymbol
+
+Replaces common salutations with the ﷺ symbol.
+
+Handles 130+ variations including:
+- Arabic script (with and without diacritics)
+- Latin transliterations (various romanization schemes)
+- Abbreviations (PBUH, SAWS, SAW, etc.)
+- English phrases ("peace and blessings be upon him")
+- Parenthetical forms
+
+<ParamField path="text" type="string">
+  The input text containing salutations
+</ParamField>
+
+**Returns:** `string` - The modified text with salutations replaced by ﷺ.
+
+```typescript
+replaceSalutationsWithSymbol("Muhammad (PBUH)"); // "Muhammad ﷺ"
+replaceSalutationsWithSymbol("Prophet Muhammad peace be upon him"); // "Prophet Muhammad ﷺ"
+replaceSalutationsWithSymbol("النبي صلى الله عليه وسلم"); // "النبي ﷺ"
+```
+
+## Text normalization
+
+### normalize
+
+Normalizes the text by removing diacritics, apostrophes, and dashes.
+
+<ParamField path="input" type="string">
+  The input text to normalize
+</ParamField>
+
+**Returns:** `string` - The normalized text.
+
+```typescript
+normalize("Al-Jadwal"); // "AlJadwal"
+normalize("āḍġḥīṣṭū"); // "adghistu"
+```
+
+### normalizeTransliteratedEnglish
+
+Simplifies English transliterations by removing diacritics, apostrophes, and common prefixes.
+
+<ParamField path="text" type="string">
+  The input text to simplify
+</ParamField>
+
+**Returns:** `string` - The simplified text.
+
+```typescript
+normalizeTransliteratedEnglish("Al-Jadwal"); // "Jadwal"
+normalizeTransliteratedEnglish("āḍġḥīṣṭū"); // "adghistu"
+```
+
+## Initial extraction
+
+### extractInitials
+
+Extracts the initials from the input string, typically used for names or titles.
+
+<ParamField path="fullName" type="string">
+  The input text to extract initials from
+</ParamField>
+
+**Returns:** `string` - The extracted initials.
+
+```typescript
+extractInitials("Nayl al-Awtar"); // "NA"
+extractInitials("Sahih al-Bukhari"); // "SB"
+```

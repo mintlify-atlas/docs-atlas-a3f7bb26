@@ -1,0 +1,116 @@
+---
+title: Parsing utilities
+description: Functions for parsing JSON, handling quotes and brackets, parsing page ranges, and converting time strings.
+---
+
+## JSON parsing
+
+### normalizeJsonSyntax
+
+Converts a string that resembles JSON but with numeric keys and single-quoted values into valid JSON format. This function replaces numeric keys with quoted numeric keys and ensures all values are double-quoted as required by JSON.
+
+<ParamField path="str" type="string">
+  The input string that needs to be fixed into valid JSON
+</ParamField>
+
+**Returns:** `string` - A valid JSON string.
+
+```typescript
+const result = normalizeJsonSyntax("{10: 'abc', 20: 'def'}");
+console.log(result); // '{"10": "abc", "20": "def"}'
+```
+
+### isJsonStructureValid
+
+Checks if a given string resembles a JSON object with numeric or quoted keys and values that are single or double quoted. This is useful for detecting malformed JSON-like structures that can be fixed by the `normalizeJsonSyntax` function.
+
+<ParamField path="str" type="string">
+  The input string to check
+</ParamField>
+
+**Returns:** `boolean` - Returns true if the string is JSON-like, false otherwise.
+
+```typescript
+const result = isJsonStructureValid("{10: 'abc', 'key': 'value'}");
+console.log(result); // true
+```
+
+## Quote and bracket validation
+
+### isBalanced
+
+Checks if both quotes and brackets are balanced in a string. This function combines quote balance checking and bracket balance checking to ensure the entire string has properly balanced punctuation.
+
+A string is considered balanced when:
+- All double quotes have matching pairs (even count)
+- All brackets (parentheses, square brackets, curly braces) are properly matched and nested
+
+<ParamField path="str" type="string">
+  The string to check for balanced quotes and brackets
+</ParamField>
+
+**Returns:** `boolean` - True if both quotes and brackets are balanced, false otherwise.
+
+```typescript
+isBalanced('He said "Hello (world)!"'); // true
+isBalanced('He said "Hello (world!"'); // false (unbalanced quote)
+isBalanced('He said "Hello (world)"'); // false (unbalanced quote)
+isBalanced('Hello (world) [test]'); // true
+```
+
+## String splitting
+
+### splitByQuotes
+
+Splits a string by spaces and quoted substrings.
+
+This function takes an input string and splits it into parts where substrings enclosed in double quotes are treated as a single part. Other substrings separated by spaces are split normally.
+
+<ParamField path="query" type="string">
+  The input string to be split
+</ParamField>
+
+**Returns:** `string[]` - An array of strings, with quoted substrings kept intact.
+
+```typescript
+const result = splitByQuotes('"This is" "a part of the" "string and"');
+console.log(result); // ["This is", "a part of the", "string and"]
+```
+
+## Page and range parsing
+
+### parsePageRanges
+
+Parses page input string into array of page numbers, supporting ranges and lists.
+
+<ParamField path="pageInput" type="string">
+  Page specification string (e.g., "1-5" or "1,3,5")
+</ParamField>
+
+**Returns:** `number[]` - Array of page numbers.
+
+**Throws:** `Error` when start page exceeds end page in range.
+
+```typescript
+parsePageRanges("1-5"); // [1, 2, 3, 4, 5]
+parsePageRanges("1,3,5"); // [1, 3, 5]
+parsePageRanges("1-3,7,10-12"); // [1, 2, 3, 7, 10, 11, 12]
+```
+
+## Time conversion
+
+### timeToSeconds
+
+Converts a time string to seconds.
+
+<ParamField path="str" type="string">
+  Time string in "HH:MM:SS", "MM:SS", or number format
+</ParamField>
+
+**Returns:** `number` - Total seconds as a number.
+
+```typescript
+timeToSeconds("1:30:45"); // 5445 (1 hour, 30 minutes, 45 seconds)
+timeToSeconds("45:30"); // 2730 (45 minutes, 30 seconds)
+timeToSeconds("90"); // 90 (90 seconds)
+```

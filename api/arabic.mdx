@@ -1,0 +1,254 @@
+---
+title: Arabic utilities
+description: Functions for working with Arabic text, including numeral conversion, character scoring, word counting, and token estimation for LLMs.
+---
+
+## arabicNumeralToNumber
+
+Converts Arabic-Indic numerals (٠-٩) to a JavaScript number.
+
+This function finds all Arabic-Indic digits in the input string and converts them to their corresponding Arabic (Western) digits, then parses the result as an integer.
+
+Arabic-Indic digits mapping:
+- ٠ → 0, ١ → 1, ٢ → 2, ٣ → 3, ٤ → 4
+- ٥ → 5, ٦ → 6, ٧ → 7, ٨ → 8, ٩ → 9
+
+<ParamField path="arabic" type="string">
+  The string containing Arabic-Indic numerals to convert
+</ParamField>
+
+**Returns:** `number` - The parsed integer value of the converted numerals. Returns NaN if no valid Arabic-Indic digits are found.
+
+```typescript
+arabicNumeralToNumber("١٢٣"); // returns 123
+arabicNumeralToNumber("٥٠"); // returns 50
+arabicNumeralToNumber("abc١٢٣xyz"); // returns 123 (non-digits ignored)
+arabicNumeralToNumber(""); // returns NaN
+```
+
+## cleanExtremeArabicUnderscores
+
+Removes extreme Arabic underscores (ـ) that appear at the beginning or end of a line or in text. Does not affect Hijri dates (e.g., 1424هـ) or specific Arabic terms.
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with extreme underscores removed.
+
+```typescript
+cleanExtremeArabicUnderscores("ـThis is a textـ"); // "This is a text"
+```
+
+## convertUrduSymbolsToArabic
+
+Converts Urdu symbols to their Arabic equivalents.
+
+<ParamField path="text" type="string">
+  The input text containing Urdu symbols
+</ParamField>
+
+**Returns:** `string` - The modified text with Urdu symbols converted to Arabic symbols.
+
+```typescript
+convertUrduSymbolsToArabic("ھذا"); // "هذا"
+convertUrduSymbolsToArabic("ی"); // "ي"
+```
+
+## getArabicScore
+
+Calculates the proportion of Arabic characters in text relative to total non-whitespace, non-digit characters. Digits (ASCII and Arabic-Indic variants) are excluded from both numerator and denominator.
+
+<ParamField path="text" type="string">
+  The input text to analyze
+</ParamField>
+
+**Returns:** `number` - A decimal between 0-1 representing the Arabic character ratio (0 = no Arabic, 1 = all Arabic).
+
+```typescript
+getArabicScore("مرحبا"); // 1.0 (100% Arabic)
+getArabicScore("Hello مرحبا"); // ~0.5 (mixed)
+getArabicScore("Hello"); // 0.0 (no Arabic)
+```
+
+## findLastPunctuation
+
+Finds the position of the last punctuation character in a string.
+
+<ParamField path="text" type="string">
+  The text to search through
+</ParamField>
+
+**Returns:** `number` - The index of the last punctuation character, or -1 if none found.
+
+```typescript
+const text = "Hello world! How are you?";
+const lastPuncIndex = findLastPunctuation(text);
+// Result: 24 (position of the last '?')
+
+const noPuncText = "Hello world";
+const notFound = findLastPunctuation(noPuncText);
+// Result: -1 (no punctuation found)
+```
+
+## fixTrailingWow
+
+Fixes the trailing "و" (wow) in phrases such as "عليكم و رحمة" to "عليكم ورحمة". This function attempts to correct phrases where "و" appears unnecessarily, particularly in greetings.
+
+<ParamField path="text" type="string">
+  The input text containing the "و" character
+</ParamField>
+
+**Returns:** `string` - The modified text with unnecessary trailing "و" characters corrected.
+
+```typescript
+fixTrailingWow("السلام عليكم و رحمة"); // "السلام عليكم ورحمة"
+```
+
+## addSpaceBetweenArabicTextAndNumbers
+
+Inserts a space between Arabic text and numbers.
+
+<ParamField path="text" type="string">
+  The input text containing Arabic text followed by numbers
+</ParamField>
+
+**Returns:** `string` - The modified text with spaces inserted between Arabic text and numbers.
+
+```typescript
+addSpaceBetweenArabicTextAndNumbers("الآية37"); // "الآية 37"
+```
+
+## removeNonIndexSignatures
+
+Removes single-digit numbers surrounded by Arabic text. Also removes dashes (-) not followed by a number. For example, removes '3' from 'وهب 3 وقال' but does not remove '121' from 'لوحه 121 الجرح'.
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with non-index numbers and dashes removed.
+
+## removeSingularCodes
+
+Removes characters enclosed in square brackets [] or parentheses () if they are Arabic letters or Arabic-Indic numerals.
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with singular codes removed.
+
+```typescript
+removeSingularCodes("[س]"); // ""
+removeSingularCodes("(س)"); // ""
+```
+
+## removeSolitaryArabicLetters
+
+Removes solitary Arabic letters unless they are the 'ha' letter, which is used in Hijri years.
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with solitary Arabic letters removed.
+
+```typescript
+removeSolitaryArabicLetters("ب ا الكلمات ت"); // "ا الكلمات"
+```
+
+## replaceEnglishPunctuationWithArabic
+
+Replaces English punctuation (question mark and semicolon) with their Arabic equivalents.
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with English punctuation replaced by Arabic punctuation.
+
+```typescript
+replaceEnglishPunctuationWithArabic("What?"); // "What؟"
+replaceEnglishPunctuationWithArabic("Item; Another"); // "Item؛ Another"
+```
+
+## countWords
+
+Counts words in text by splitting on whitespace. Works for both Arabic and English text.
+
+<ParamField path="text" type="string">
+  The text to count words in
+</ParamField>
+
+**Returns:** `number` - Number of words in the text.
+
+```typescript
+countWords("مرحبا بك"); // 2
+countWords("Hello world"); // 2
+```
+
+## LLM token estimation
+
+### LLMProvider
+
+Supported LLM providers for token estimation. Each provider has different tokenization characteristics based on their BPE implementation.
+
+```typescript
+enum LLMProvider {
+  /** OpenAI GPT models (GPT-3.5, GPT-4, GPT-4o) - uses tiktoken */
+  OpenAI = 'openai',
+  /** Google Gemini models - uses SentencePiece, 25% more efficient for multilingual */
+  Gemini = 'gemini',
+  /** Anthropic Claude models - less efficient for Arabic */
+  Claude = 'claude',
+  /** xAI Grok models - similar to OpenAI */
+  Grok = 'grok',
+  /** Generic/default estimation - balanced middle ground */
+  Generic = 'generic',
+}
+```
+
+### estimateTokenCount
+
+LLM-aware token estimation with provider-specific configurations. Uses a single-pass O(N) classifier for performance and correctness.
+
+**Algorithm features:**
+- Single pass iteration over code points (avoiding memory spikes from match() arrays)
+- Exclusive classification (preventing double-counting overlaps)
+- Additive overhead application (preventing overhead bleeding into other scripts)
+- Run-length encoding approximation for numerals (better BPE simulation)
+
+**Research findings:**
+- OpenAI: ~4 chars/token English, ~1.3 chars/token Arabic (3x inflation)
+- Gemini: 25% more efficient than OpenAI for Arabic (SentencePiece-based)
+- Claude: ~3.5 chars/token English, less efficient for Arabic
+- Grok: Similar to OpenAI (standard BPE)
+
+<ParamField path="text" type="string">
+  The input text to estimate tokens for
+</ParamField>
+
+<ParamField path="provider" type="LLMProvider" default="LLMProvider.Generic">
+  The LLM provider to use for estimation
+</ParamField>
+
+**Returns:** `number` - Estimated token count.
+
+```typescript
+import { estimateTokenCount, LLMProvider } from 'bitaboom';
+
+// Using default (Generic) provider
+const tokens = estimateTokenCount("مرحبا بك في العالم");
+
+// Using specific provider
+const openaiTokens = estimateTokenCount(
+  "مرحبا بك في العالم",
+  LLMProvider.OpenAI
+);
+
+const geminiTokens = estimateTokenCount(
+  "مرحبا بك في العالم",
+  LLMProvider.Gemini
+);
+```

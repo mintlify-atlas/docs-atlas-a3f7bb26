@@ -1,0 +1,187 @@
+---
+title: Diacritic-insensitive matching
+description: Examples of matching Arabic text with and without diacritics using regex patterns
+---
+
+Bitaboom provides powerful functions for matching Arabic text regardless of diacritics, character variants, and decorative elements like tatweel.
+
+## Basic diacritic-insensitive matching
+
+The `makeDiacriticInsensitiveRegex` function creates regex patterns that match Arabic text with or without diacritics.
+
+```typescript
+import { makeDiacriticInsensitiveRegex } from 'bitaboom';
+
+const regex = makeDiacriticInsensitiveRegex('السلام عليكم');
+
+// Matches text with diacritics
+regex.test('اَلسَّلَامُ عَلَيْكُمْ'); // true
+
+// Matches text without diacritics
+regex.test('السلام عليكم'); // true
+```
+
+## Character equivalences
+
+The function automatically handles common Arabic character variants:
+
+### Alif variants
+
+All forms of alif (ا, آ, أ, إ) are treated as equivalent:
+
+```typescript
+const rx = makeDiacriticInsensitiveRegex('أنا إلى الآفاق');
+
+rx.test('انا الى الافاق'); // true
+rx.test('أنا إلى الآفاق'); // true
+rx.test('اَنا إلى الآفاق'); // true
+```
+
+### Ta marbuta and ha
+
+Ta marbuta (ة) and ha (ه) are interchangeable:
+
+```typescript
+const rx = makeDiacriticInsensitiveRegex('مدرسة');
+
+rx.test('مدرسه'); // true
+rx.test('مدرسة'); // true
+```
+
+### Alif maqsurah and ya
+
+Alif maqsurah (ى) and ya (ي) match each other:
+
+```typescript
+const rx = makeDiacriticInsensitiveRegex('على');
+
+rx.test('علي'); // true
+rx.test('على'); // true
+```
+
+## Tatweel tolerance
+
+The function handles decorative elongation characters (tatweel/kashida):
+
+```typescript
+const rx = makeDiacriticInsensitiveRegex('أبتكة');
+
+// Matches with tatweel between letters
+rx.test('أبـــتِـــكَةُ'); // true
+rx.test('أبتكة'); // true
+```
+
+## Building complex patterns
+
+You can compose multiple patterns using the `.source` property:
+
+```typescript
+import { makeDiacriticInsensitiveRegex, escapeRegex } from 'bitaboom';
+
+const words = ['أنا', 'الى'];
+const pieces = words.map(w => makeDiacriticInsensitiveRegex(w).source);
+const rx = new RegExp(`^(?:${pieces.join('|')})` + escapeRegex(' الافاق') + '.*$', 'mu');
+
+rx.test('انا الافاق'); // true
+rx.test('إِلى الافاق'); // true
+rx.test('آنا الافاق'); // true
+rx.test('هو الافاق'); // false
+```
+
+## Simple pattern generation
+
+For simpler use cases, use `makeDiacriticInsensitive` to generate a regex pattern string:
+
+```typescript
+import { makeDiacriticInsensitive } from 'bitaboom';
+
+const pattern = makeDiacriticInsensitive('مرحبا');
+const regex = new RegExp(pattern);
+
+// Matches with different alif variant
+regex.test('مرحبأ'); // true
+
+// Matches with diacritics
+regex.test('مَرْحَبَا'); // true
+
+// Matches original text
+regex.test('مرحبا'); // true
+```
+
+## Advanced options
+
+Customize matching behavior with options:
+
+```typescript
+const rx = makeDiacriticInsensitiveRegex('مدرسة', {
+  equivalences: {
+    alif: true,              // Match all alif variants (default: true)
+    taMarbutahHa: true,      // Match ة and ه (default: true)
+    alifMaqsurahYa: true     // Match ى and ي (default: true)
+  },
+  allowTatweel: true,        // Tolerate tatweel (default: true)
+  ignoreDiacritics: true,    // Ignore diacritics (default: true)
+  flexWhitespace: true,      // Match flexible whitespace (default: true)
+  flags: 'u'                 // RegExp flags (default: 'u')
+});
+```
+
+## Common use cases
+
+### Search in Arabic text
+
+```typescript
+function searchArabic(haystack: string, needle: string): boolean {
+  const rx = makeDiacriticInsensitiveRegex(needle);
+  return rx.test(haystack);
+}
+
+const text = 'قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ';
+searchArabic(text, 'رسول الله'); // true
+```
+
+### Find and highlight matches
+
+```typescript
+function highlightMatches(text: string, search: string): string {
+  const rx = makeDiacriticInsensitiveRegex(search, { flags: 'gu' });
+  return text.replace(rx, match => `<mark>${match}</mark>`);
+}
+
+const result = highlightMatches(
+  'الحمد لله رب العالمين',
+  'الله'
+);
+// Result: 'الحمد <mark>لله</mark> رب العالمين'
+```
+
+<Note>
+The `makeDiacriticInsensitiveRegex` function has a safety limit of 5000 characters to prevent excessive pattern sizes that could impact performance.
+</Note>
+
+## Edge cases
+
+### Empty strings
+
+```typescript
+const result = makeDiacriticInsensitive('');
+// Returns: ''
+```
+
+### Non-Arabic characters
+
+Non-Arabic characters are escaped and have diacritic matchers applied:
+
+```typescript
+const result = makeDiacriticInsensitive('hello مرحبا');
+// Pattern includes both Latin and Arabic character handling
+```
+
+### Special regex characters
+
+Special regex characters are automatically escaped:
+
+```typescript
+const result = makeDiacriticInsensitive('test.+*?');
+// Special chars are escaped: 'test\\.\\+\\*\\?'
+```

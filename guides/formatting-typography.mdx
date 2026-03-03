@@ -1,0 +1,529 @@
+---
+title: Formatting and typography
+description: Comprehensive guide to typography normalization, punctuation cleanup, and text formatting utilities
+---
+
+Bitaboom provides over 30 formatting and typography utilities designed for cleaning up scanned manuscripts, OCR output, and general text normalization.
+
+## Punctuation normalization
+
+### Insert line breaks after punctuation
+
+Add line breaks after sentence-ending punctuation:
+
+```typescript
+import { insertLineBreaksAfterPunctuation } from 'bitaboom';
+
+const text = 'First sentence. Second sentence! Third sentence?';
+insertLineBreaksAfterPunctuation(text);
+// Returns:
+// "First sentence.\nSecond sentence!\nThird sentence?"
+```
+
+Supports: `.` `!` `?` `؟` (Arabic question mark)
+
+<Note>
+For comprehensive preformatting in a single pass, use [`preformatArabicText`](/guides/preformatting-pipeline) which is significantly faster for large inputs.
+</Note>
+
+### Add spacing around punctuation
+
+Normalize spacing around punctuation marks:
+
+```typescript
+import { addSpaceBeforeAndAfterPunctuation } from 'bitaboom';
+
+addSpaceBeforeAndAfterPunctuation('Text,word'); // returns 'Text, word'
+addSpaceBeforeAndAfterPunctuation('Text  ,  word'); // returns 'Text, word'
+```
+
+Handles special cases:
+- Preserves spacing for quotes and ayah references
+- Normalizes colons in verse references (e.g., `12:34`)
+- Respects closing brackets and quotation marks
+
+### Clean spaces before punctuation
+
+```typescript
+import { cleanSpacesBeforePeriod } from 'bitaboom';
+
+cleanSpacesBeforePeriod('This is a sentence , with extra space .');
+// returns 'This is a sentence, with extra space.'
+```
+
+Supports: `.` `؟` `!` `,` `،` `؛` `:` `?`
+
+### Remove redundant punctuation
+
+```typescript
+import { removeRedundantPunctuation } from 'bitaboom';
+
+removeRedundantPunctuation('كيف حالك؟.'); // returns 'كيف حالك؟'
+removeRedundantPunctuation('ممتاز!،'); // returns 'ممتاز!'
+removeRedundantPunctuation('هذا جيد.'); // returns 'هذا جيد.' (unchanged)
+```
+
+## Smart quotes and quotation marks
+
+### Apply smart quotes
+
+Convert straight quotes to smart quotes:
+
+```typescript
+import { applySmartQuotes } from 'bitaboom';
+
+applySmartQuotes('The "quick brown" fox');
+// returns 'The "quick brown" fox'
+
+applySmartQuotes('"Start of text');
+// returns '"Start of text'
+```
+
+### Fix mismatched quotation marks
+
+Correct various incorrect bracket/quote combinations:
+
+```typescript
+import { fixMismatchedQuotationMarks } from 'bitaboom';
+
+fixMismatchedQuotationMarks('«النص)'); // returns '«النص»'
+fixMismatchedQuotationMarks('(النص»'); // returns '«النص»'
+fixMismatchedQuotationMarks('«النص'); // returns '«النص»' (auto-closes)
+```
+
+### Trim space inside quotes
+
+```typescript
+import { trimSpaceInsideQuotes } from 'bitaboom';
+
+trimSpaceInsideQuotes('" Text "'); // returns '"Text"'
+trimSpaceInsideQuotes('« النص »'); // returns '«النص»'
+```
+
+## Bracket normalization
+
+### Double to single brackets
+
+```typescript
+import { doubleToSingleBrackets } from 'bitaboom';
+
+doubleToSingleBrackets('((text))'); // returns '(text)'
+doubleToSingleBrackets('[[note]]'); // returns '[note]'
+```
+
+### Replace double brackets with Arabic guillemets
+
+```typescript
+import { replaceDoubleBracketsWithArrows } from 'bitaboom';
+
+replaceDoubleBracketsWithArrows('((text))'); // returns '«text»'
+replaceDoubleBracketsWithArrows('(( spaced ))'); // returns '«spaced»'
+```
+
+### Fix bracket typos
+
+```typescript
+import { fixBracketTypos } from 'bitaboom';
+
+fixBracketTypos('(«content»)'); // returns '«content»'
+fixBracketTypos(')123)'); // returns '(123)'
+fixBracketTypos(')456('); // returns '(456)'
+```
+
+### Fix curly braces
+
+```typescript
+import { fixCurlyBraces } from 'bitaboom';
+
+fixCurlyBraces('(content}'); // returns '{content}'
+fixCurlyBraces('{content)'); // returns '{content}'
+```
+
+### Ensure spacing before brackets
+
+```typescript
+import { ensureSpaceBeforeBrackets, ensureSpaceBeforeQuotes } from 'bitaboom';
+
+ensureSpaceBeforeBrackets('text(note)'); // returns 'text (note)'
+ensureSpaceBeforeQuotes('text«note»'); // returns 'text «note»'
+```
+
+### Remove space inside brackets
+
+```typescript
+import { removeSpaceInsideBrackets } from 'bitaboom';
+
+removeSpaceInsideBrackets('( a b )'); // returns '(a b)'
+removeSpaceInsideBrackets('[ text ]'); // returns '[text]'
+```
+
+## Character repetition and condensation
+
+### Condense ellipsis
+
+```typescript
+import { condenseEllipsis } from 'bitaboom';
+
+condenseEllipsis('This is a test...'); // returns 'This is a test…'
+condenseEllipsis('Wait..'); // returns 'Wait…'
+```
+
+### Condense asterisks
+
+```typescript
+import { condenseAsterisks } from 'bitaboom';
+
+condenseAsterisks('***'); // returns '*'
+condenseAsterisks('* * *'); // returns '*'
+```
+
+### Condense colons
+
+```typescript
+import { condenseColons } from 'bitaboom';
+
+condenseColons('This.:. is a test'); // returns 'This: is a test'
+condenseColons('.-:-.'); // returns ':'
+```
+
+### Condense dashes
+
+```typescript
+import { condenseDashes } from 'bitaboom';
+
+condenseDashes('This is some ---- text'); // returns 'This is some - text'
+condenseDashes('--'); // returns '-'
+```
+
+### Condense underscores and tatweel
+
+```typescript
+import { condenseUnderscores } from 'bitaboom';
+
+condenseUnderscores('This is ـــ some text __'); 
+// returns 'This is ـ some text _'
+```
+
+### Condense periods
+
+```typescript
+import { condensePeriods } from 'bitaboom';
+
+condensePeriods('This . . . is a test'); // returns 'This. is a test'
+```
+
+## Whitespace normalization
+
+### Normalize spaces
+
+Collapse multiple spaces/tabs to single space:
+
+```typescript
+import { normalizeSpaces } from 'bitaboom';
+
+normalizeSpaces('This   is a   text'); // returns 'This is a text'
+normalizeSpaces('Tab\t\tseparated'); // returns 'Tab separated'
+```
+
+### Clean multilines
+
+Remove horizontal whitespace from line edges:
+
+```typescript
+import { cleanMultilines } from 'bitaboom';
+
+cleanMultilines('  line1  \n  line2  '); // returns 'line1\nline2'
+cleanMultilines('\t\tindented\t\t'); // returns 'indented'
+cleanMultilines('text\n \n \n'); // returns 'text\n\n\n'
+```
+
+<Info>
+This function handles various Unicode horizontal whitespace characters including regular spaces, tabs, non-breaking spaces, and other Unicode whitespace.
+</Info>
+
+### Reduce multiple line breaks
+
+<Tabs>
+  <Tab title="To double">
+  ```typescript
+  import { reduceMultilineBreaksToDouble } from 'bitaboom';
+  
+  const text = 'This is line 1\n\n\n\nThis is line 2';
+  reduceMultilineBreaksToDouble(text);
+  // returns 'This is line 1\n\nThis is line 2'
+  ```
+  </Tab>
+  
+  <Tab title="To single">
+  ```typescript
+  import { reduceMultilineBreaksToSingle } from 'bitaboom';
+  
+  const text = 'This is line 1\n\nThis is line 2';
+  reduceMultilineBreaksToSingle(text);
+  // returns 'This is line 1\nThis is line 2'
+  ```
+  </Tab>
+</Tabs>
+
+### Clean literal newlines
+
+Replace literal `\n` and `\r` strings with actual newlines:
+
+```typescript
+import { cleanLiteralNewLines } from 'bitaboom';
+
+cleanLiteralNewLines('A\\nB'); // returns 'A\nB'
+cleanLiteralNewLines('Text\\rMore'); // returns 'Text\nMore'
+```
+
+## Reference formatting
+
+### Normalize slashes in references
+
+```typescript
+import { normalizeSlashInReferences } from 'bitaboom';
+
+normalizeSlashInReferences('127 / 11'); // returns '127/11'
+normalizeSlashInReferences('Page 5 / 6'); // returns 'Page 5/6'
+```
+
+## Text case utilities
+
+### Title case conversion
+
+```typescript
+import { toTitleCase } from 'bitaboom';
+
+toTitleCase('hello world'); // returns 'Hello World'
+toTitleCase('SHOUTING TEXT'); // returns 'Shouting Text'
+toTitleCase('mixed CASE text'); // returns 'Mixed Case Text'
+```
+
+### Detect all uppercase
+
+```typescript
+import { isAllUppercase } from 'bitaboom';
+
+isAllUppercase('HELLO WORLD'); // returns true
+isAllUppercase('Hello World'); // returns false
+isAllUppercase('TITLE123'); // returns true (ignores numbers)
+isAllUppercase('   '); // returns false (no letters)
+```
+
+## Styling removal
+
+### Strip bold styling
+
+```typescript
+import { stripBoldStyling } from 'bitaboom';
+
+const boldText = '\u{1D5D4}\u{1D5D5}\u{1D5D6}'; // Mathematical bold ABC
+stripBoldStyling(boldText); // returns 'ABC'
+```
+
+### Strip italic styling
+
+```typescript
+import { stripItalicsStyling } from 'bitaboom';
+
+const italicText = '𝘼𝘽𝘾';
+stripItalicsStyling(italicText); // returns 'ABC'
+```
+
+### Strip all styling
+
+```typescript
+import { stripStyling } from 'bitaboom';
+
+// Removes both bold and italic Unicode styling
+const styledText = getMixedStyledText();
+stripStyling(styledText); // returns plain text
+```
+
+## Advanced formatting
+
+### Format by sentence
+
+Join sentences while keeping footnotes on separate lines:
+
+```typescript
+import { formatStringBySentence } from 'bitaboom';
+
+const input = `First sentence.
+(1) A footnote.
+Second sentence.`;
+
+formatStringBySentence(input);
+// Returns:
+// "First sentence.\n(1) A footnote.\nSecond sentence."
+```
+
+Footnotes are identified by:
+- Arabic numerals: `(1)`, `(2)`, etc.
+- Eastern Arabic numerals: `(۱)`, `(۲)`, etc.
+
+### Detection utilities
+
+<Tabs>
+  <Tab title="Detect single-word lines">
+  ```typescript
+  import { hasWordInSingleLine } from 'bitaboom';
+  
+  hasWordInSingleLine('word'); // true
+  hasWordInSingleLine('two words'); // false
+  hasWordInSingleLine('line1\nword\nline3'); // true
+  ```
+  </Tab>
+  
+  <Tab title="Detect punctuation-only">
+  ```typescript
+  import { isOnlyPunctuation } from 'bitaboom';
+  
+  isOnlyPunctuation('...'); // true
+  isOnlyPunctuation('123'); // true (digits count as punctuation)
+  isOnlyPunctuation('hello'); // false
+  ```
+  </Tab>
+</Tabs>
+
+## Real-world patterns
+
+### Clean OCR manuscript output
+
+```typescript
+import {
+  cleanSpacesBeforePeriod,
+  condenseEllipsis,
+  normalizeSpaces,
+  reduceMultilineBreaksToDouble,
+  fixMismatchedQuotationMarks,
+  applySmartQuotes
+} from 'bitaboom';
+
+function cleanManuscript(text: string): string {
+  let result = text;
+  
+  // Fix punctuation spacing
+  result = cleanSpacesBeforePeriod(result);
+  
+  // Normalize repetitions
+  result = condenseEllipsis(result);
+  result = normalizeSpaces(result);
+  
+  // Fix line breaks
+  result = reduceMultilineBreaksToDouble(result);
+  
+  // Fix quotes
+  result = fixMismatchedQuotationMarks(result);
+  result = applySmartQuotes(result);
+  
+  return result;
+}
+```
+
+### Normalize academic footnotes
+
+```typescript
+import {
+  formatStringBySentence,
+  ensureSpaceBeforeBrackets,
+  removeSpaceInsideBrackets
+} from 'bitaboom';
+
+function normalizeFootnotes(text: string): string {
+  let result = text;
+  
+  // Ensure proper bracketing
+  result = ensureSpaceBeforeBrackets(result);
+  result = removeSpaceInsideBrackets(result);
+  
+  // Format sentences and footnotes
+  result = formatStringBySentence(result);
+  
+  return result;
+}
+```
+
+### Create display-ready text
+
+```typescript
+import {
+  normalizeSpaces,
+  cleanMultilines,
+  toTitleCase,
+  stripStyling
+} from 'bitaboom';
+
+function prepareForDisplay(rawText: string, titleCase = false): string {
+  let result = stripStyling(rawText);
+  result = normalizeSpaces(result);
+  result = cleanMultilines(result);
+  
+  if (titleCase) {
+    result = toTitleCase(result);
+  }
+  
+  return result.trim();
+}
+```
+
+## Combining with Arabic processing
+
+```typescript
+import {
+  replaceEnglishPunctuationWithArabic,
+  fixTrailingWow,
+  cleanSpacesBeforePeriod,
+  normalizeSpaces,
+  fixMismatchedQuotationMarks
+} from 'bitaboom';
+
+function normalizeArabicText(text: string): string {
+  let result = text;
+  
+  // Arabic-specific
+  result = replaceEnglishPunctuationWithArabic(result);
+  result = fixTrailingWow(result);
+  
+  // General formatting
+  result = cleanSpacesBeforePeriod(result);
+  result = normalizeSpaces(result);
+  result = fixMismatchedQuotationMarks(result);
+  
+  return result;
+}
+```
+
+## Performance considerations
+
+<Warning>
+When processing large texts or batches, individual formatting functions can be slow. For comprehensive Arabic text cleanup, use the optimized [`preformatArabicText`](/guides/preformatting-pipeline) function which combines many of these operations in a single pass.
+</Warning>
+
+<Steps>
+  <Step title="For single transformations">
+    Use individual functions when you only need specific formatting:
+    ```typescript
+    const result = normalizeSpaces(text);
+    ```
+  </Step>
+  
+  <Step title="For multiple transformations on small text">
+    Chain functions for readability:
+    ```typescript
+    const result = normalizeSpaces(cleanSpacesBeforePeriod(text));
+    ```
+  </Step>
+  
+  <Step title="For comprehensive Arabic formatting">
+    Use the preformatting pipeline:
+    ```typescript
+    import { preformatArabicText } from 'bitaboom';
+    const result = preformatArabicText(text);
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+All formatting functions handle edge cases gracefully, including empty strings, null values, and extreme Unicode characters.
+</Tip>

@@ -1,0 +1,75 @@
+---
+title: Introduction
+description: TypeScript-first string utility toolkit focused on Arabic and bilingual publishing workflows
+---
+
+# Welcome to Bitaboom
+
+Bitaboom is a TypeScript-first string utility toolkit focused on Arabic and bilingual (Arabic ↔ English) publishing workflows. It provides a comprehensive set of helpers for Arabic script processing, typography cleanup, and text sanitization.
+
+<Note>
+  **Interactive Demo**: Try the live demo at [bitaboom.surge.sh](https://bitaboom.surge.sh) to explore every exported helper with real-time formatting.
+</Note>
+
+## Key features
+
+Bitaboom ships with a wide surface of utilities organized into focused areas:
+
+<CardGroup cols={2}>
+  <Card title="Arabic-first matching" icon="language">
+    Build diacritic-insensitive regular expressions, collapse tatweel, score Arabic content density, and replace Urdu glyphs
+  </Card>
+  
+  <Card title="Rich typography normalizers" icon="text">
+    More than 30 helpers to fix punctuation spacing, quotes, brackets, ellipses, smart quotes, and whitespace quirks
+  </Card>
+  
+  <Card title="Single-pass preformatter" icon="bolt">
+    `preformatArabicText` consolidates the common formatting pipeline and is optimized for large datasets
+  </Card>
+  
+  <Card title="Sanitization pipelines" icon="broom">
+    Strip references, URLs, part markers, markdown decorations, escaped spaces, or numbers in bilingual text
+  </Card>
+  
+  <Card title="Parsing helpers" icon="code">
+    Validate JSON-ish blobs, split search queries by quotes, balance parentheses/quotes, and expand page range strings
+  </Card>
+  
+  <Card title="Transliteration polish" icon="globe">
+    Normalize common Arabic prefixes, dedupe apostrophes, replace salutations with ﷺ, and extract initials
+  </Card>
+</CardGroup>
+
+## Why Bitaboom?
+
+Bitaboom was designed specifically for publishers and developers working with Arabic and Islamic texts. It addresses common challenges in:
+
+- **OCR cleanup**: Formatting and typography cleanup for scanned/OCRd manuscripts
+- **Content normalization**: Harmonizing diacritics, punctuation, and spacing across documents
+- **Bilingual workflows**: Handling mixed Arabic-English content with proper spacing and formatting
+- **LLM integration**: Token estimation for Arabic content across multiple providers (OpenAI, Gemini, Claude, Grok)
+
+<Info>
+  All exports are tree-shakeable and documented with JSDoc. The project targets ESNext and is built/tested with Bun.
+</Info>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Get started by installing Bitaboom in your project
+  </Card>
+  
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Learn the basics with working code examples
+  </Card>
+  
+  <Card title="API Reference" icon="book" href="/api/arabic">
+    Explore the complete API documentation
+  </Card>
+  
+  <Card title="GitHub" icon="github" href="https://github.com/ragaeeb/bitaboom">
+    View the source code and contribute
+  </Card>
+</CardGroup>

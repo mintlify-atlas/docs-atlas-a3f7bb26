@@ -1,0 +1,187 @@
+---
+title: Preformat
+description: High-performance single-pass Arabic text preprocessing pipeline for formatting, spacing, and punctuation normalization.
+---
+
+## preformatArabicText
+
+High-performance Arabic preformatting pipeline that consolidates common formatting steps into a single-pass formatter.
+
+**Consolidates these operations:**
+- Spacing normalization and insertion
+- Punctuation normalization (Arabic/English conversion)
+- Reference formatting (slash spacing for numbers)
+- Bracket and quote cleanup
+- Ellipsis condensation
+- Newline normalization
+- Redundant character removal
+- Smart quote handling
+
+This function is significantly faster and more memory-friendly than chaining individual formatting functions, especially on large inputs.
+
+### Function signatures
+
+```typescript
+function preformatArabicText(text: string): string;
+function preformatArabicText(text: string[]): string[];
+```
+
+<ParamField path="text" type="string | string[]">
+  Input string or an array of strings to preformat
+</ParamField>
+
+**Returns:** `string | string[]` - Preformatted string or array of strings (matching input shape).
+
+### Single string example
+
+```typescript
+import { preformatArabicText } from 'bitaboom';
+
+const input = "هذا   نص    عربي؟.  مع  مسافات   زائدة";
+const formatted = preformatArabicText(input);
+// "هذا نص عربي؟ مع مسافات زائدة"
+```
+
+### Array example
+
+```typescript
+import { preformatArabicText } from 'bitaboom';
+
+const inputs = [
+  "نص   أول؟.  مع   مسافات",
+  "نص   ثاني!!  آخر"
+];
+
+const formatted = preformatArabicText(inputs);
+// [
+//   "نص أول؟ مع مسافات",
+//   "نص ثاني! آخر"
+// ]
+```
+
+### Features
+
+**Punctuation normalization:**
+- Converts `?` to `؟` (Arabic question mark)
+- Converts `;` to `؛` (Arabic semicolon)
+- Removes redundant punctuation (e.g., `؟.` becomes `؟`)
+
+**Spacing:**
+- Normalizes multiple spaces to single space
+- Removes spaces before punctuation
+- Adds spaces after punctuation
+- Handles spaces around brackets and quotes
+- Fixes reference formatting (e.g., `1 / 2` becomes `1/2`)
+
+**Character condensing:**
+- Condenses multiple underscores/tatweel: `ـــ` → `ـ`
+- Condenses multiple dashes: `---` → `-`
+- Condenses multiple asterisks: `***` → `*`
+- Converts `..` to ellipsis `…`
+- Condenses colons: `.:` → `:`
+
+**Bracket and quote cleanup:**
+- Converts `((text))` to `«text»`
+- Fixes mismatched brackets and quotes
+- Removes spaces inside brackets/quotes
+
+**Line break handling:**
+- Normalizes multiple newlines
+- Cleans horizontal whitespace from line ends
+- Removes trailing/leading whitespace
+
+### Performance characteristics
+
+**Single-pass algorithm:**
+- O(N) time complexity where N is input length
+- Minimal memory allocations
+- Uses lookup table for character classification
+- Processes UTF-16 code units directly
+
+**Optimized for:**
+- Page-sized inputs (typical documents)
+- Very large inputs (100MB+ strings)
+- Batch processing of multiple strings
+
+### Advanced usage
+
+**Environment variable control:**
+
+You can force a specific internal builder for experiments/benchmarks:
+
+```bash
+# Force string concatenation builder (default)
+export BITABOOM_PREFORMAT_BUILDER=concat
+
+# Force buffer builder (experimental, for very large inputs)
+export BITABOOM_PREFORMAT_BUILDER=buffer
+```
+
+<Note>
+The buffer builder is experimental and primarily useful for extremely large inputs (100MB+) where GC pressure may dominate. For typical use cases, the default concat builder is faster.
+</Note>
+
+### Use cases
+
+**Document preprocessing:**
+```typescript
+import { preformatArabicText } from 'bitaboom';
+
+// Clean OCR output
+const ocrText = readOCROutput();
+const cleaned = preformatArabicText(ocrText);
+
+// Prepare for indexing
+const documents = await fetchDocuments();
+const formatted = preformatArabicText(documents.map(d => d.content));
+```
+
+**Pipeline integration:**
+```typescript
+import { preformatArabicText, replaceSalutationsWithSymbol } from 'bitaboom';
+
+function processArabicText(text: string) {
+  // Step 1: Preformat (spacing, punctuation, etc.)
+  const formatted = preformatArabicText(text);
+  
+  // Step 2: Replace salutations
+  const withSalutations = replaceSalutationsWithSymbol(formatted);
+  
+  return withSalutations;
+}
+```
+
+### Comparison with individual functions
+
+**Before (multiple passes):**
+```typescript
+import {
+  normalizeSpaces,
+  cleanSpacesBeforePeriod,
+  replaceEnglishPunctuationWithArabic,
+  condenseUnderscores,
+  // ... 10+ more imports
+} from 'bitaboom';
+
+// Multiple string allocations, multiple passes
+let text = input;
+text = normalizeSpaces(text);
+text = cleanSpacesBeforePeriod(text);
+text = replaceEnglishPunctuationWithArabic(text);
+text = condenseUnderscores(text);
+// ... 10+ more function calls
+```
+
+**After (single pass):**
+```typescript
+import { preformatArabicText } from 'bitaboom';
+
+// Single allocation, single pass
+const text = preformatArabicText(input);
+```
+
+**Benefits:**
+- 5-10x faster on typical inputs
+- Significantly lower memory usage
+- Simpler code
+- Consistent results

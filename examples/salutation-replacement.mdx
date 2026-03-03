@@ -1,0 +1,259 @@
+---
+title: Salutation replacement
+description: Examples of replacing Prophet Muhammad salutations with the ﷺ symbol
+---
+
+Bitaboom can automatically detect and replace over 130 variations of salutations for Prophet Muhammad with the standardized Unicode symbol ﷺ (U+FDFA).
+
+## Basic usage
+
+```typescript
+import { replaceSalutationsWithSymbol } from 'bitaboom';
+
+const text = 'The Prophet sallallahu alayhi wasallam said';
+const result = replaceSalutationsWithSymbol(text);
+// Result: 'The Prophet ﷺ said'
+```
+
+## Supported formats
+
+### Latin abbreviations
+
+Common English abbreviations are automatically replaced:
+
+```typescript
+replaceSalutationsWithSymbol('The Prophet PBUH');
+// Result: 'The Prophet ﷺ'
+
+replaceSalutationsWithSymbol('Muhammad (SAW) said');
+// Result: 'Muhammad ﷺ said'
+
+replaceSalutationsWithSymbol('The Prophet (s. a. w. s.) said');
+// Result: 'The Prophet ﷺ said'
+```
+
+<Tabs>
+  <Tab title="PBUH">
+    ```typescript
+    replaceSalutationsWithSymbol('PBUH was a title');
+    // Result: 'ﷺ was a title'
+    ```
+  </Tab>
+  <Tab title="SAW">
+    ```typescript
+    replaceSalutationsWithSymbol('The Prophet (SAW) said');
+    // Result: 'The Prophet ﷺ said'
+    ```
+  </Tab>
+  <Tab title="SAWS">
+    ```typescript
+    replaceSalutationsWithSymbol('Muhammad (SAWS) taught');
+    // Result: 'Muhammad ﷺ taught'
+    ```
+  </Tab>
+</Tabs>
+
+### Latin transliterations
+
+Various romanization schemes are supported:
+
+```typescript
+replaceSalutationsWithSymbol('sallahu alayhi wasallam');
+// Result: 'ﷺ'
+
+replaceSalutationsWithSymbol('The Prophet sallallahu alayhi wasallam said');
+// Result: 'The Prophet ﷺ said'
+```
+
+### Parenthetical forms
+
+Salutations in parentheses are handled correctly:
+
+```typescript
+replaceSalutationsWithSymbol(
+  'Then the Messenger of Allah (sallahu alayhi wasallam) said'
+);
+// Result: 'Then the Messenger of Allah ﷺ said'
+
+replaceSalutationsWithSymbol(
+  'Then the Messenger (peace and blessings be upon him) said'
+);
+// Result: 'Then the Messenger ﷺ said'
+```
+
+### English phrases
+
+Long-form English phrases are recognized:
+
+```typescript
+replaceSalutationsWithSymbol(
+  `Allah's Messenger (May peace and blessings be upon him) said`
+);
+// Result: `Allah's Messenger ﷺ said`
+
+replaceSalutationsWithSymbol(
+  'Prophet (May peace and blessings be upon him) said'
+);
+// Result: 'Prophet ﷺ said'
+```
+
+## Arabic script
+
+The function handles Arabic salutations with and without diacritics:
+
+### With diacritics
+
+```typescript
+replaceSalutationsWithSymbol('النبي صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ قال');
+// Result: 'النبي ﷺ قال'
+```
+
+### Without diacritics
+
+```typescript
+replaceSalutationsWithSymbol('النبي صلى الله عليه وسلم قال');
+// Result: 'النبي ﷺ قال'
+```
+
+### Alternative forms
+
+```typescript
+replaceSalutationsWithSymbol('محمد عليه الصلاة والسلام');
+// Result: 'محمد ﷺ'
+```
+
+## Multiple occurrences
+
+All salutations in a text are replaced:
+
+```typescript
+const text = `The Prophet sallallahu alayhi wasallam met Muhammad (SAW).`;
+const result = replaceSalutationsWithSymbol(text);
+// Result: 'The Prophet ﷺ met Muhammad ﷺ.'
+```
+
+## Symbol cleanup
+
+The function automatically cleans up surrounding punctuation:
+
+### Removing dashes
+
+```typescript
+replaceSalutationsWithSymbol('The Prophet -ﷺ- said');
+// Result: 'The Prophet ﷺ said'
+```
+
+### Cleaning commas
+
+```typescript
+replaceSalutationsWithSymbol('The Prophet, PBUH, said');
+// Result: 'The Prophet ﷺ said'
+```
+
+### Parentheses cleanup
+
+```typescript
+replaceSalutationsWithSymbol('Then the Prophet (sallahu alayhi wasallam) said');
+// Result: 'Then the Prophet ﷺ said'
+```
+
+## Multiline text
+
+The function preserves line breaks:
+
+```typescript
+const input = `Line one
+sallallahu alayhi wasallam
+Line two`;
+replaceSalutationsWithSymbol(input);
+// Result: 'Line one\nﷺ\nLine two'
+```
+
+## Edge cases and safety
+
+### Partial matches are ignored
+
+Incomplete salutations won't be replaced:
+
+```typescript
+replaceSalutationsWithSymbol('sallahu said something');
+// Result: 'sallahu said something' (unchanged)
+
+replaceSalutationsWithSymbol('salam alaykum');
+// Result: 'salam alaykum' (unchanged)
+```
+
+### Already replaced text
+
+Text with existing symbols is preserved:
+
+```typescript
+replaceSalutationsWithSymbol('The Prophet ﷺ said');
+// Result: 'The Prophet ﷺ said' (unchanged)
+```
+
+### Empty strings
+
+```typescript
+replaceSalutationsWithSymbol('');
+// Result: ''
+```
+
+### Non-salutation Arabic
+
+```typescript
+replaceSalutationsWithSymbol('الحمد لله رب العالمين');
+// Result: 'الحمد لله رب العالمين' (unchanged)
+```
+
+## Real-world example
+
+```typescript
+import { replaceSalutationsWithSymbol } from 'bitaboom';
+
+function formatHadithText(hadith: string): string {
+  return replaceSalutationsWithSymbol(hadith);
+}
+
+const hadith = `
+The Messenger of Allah (sallallahu alayhi wasallam) said:
+"The best of you are those who learn the Qur'an and teach it."
+
+Narrated by al-Bukhari.
+The Prophet صلى الله عليه وسلم was the best of mankind.
+`;
+
+const formatted = formatHadithText(hadith);
+console.log(formatted);
+// Output:
+// The Messenger of Allah ﷺ said:
+// "The best of you are those who learn the Qur'an and teach it."
+//
+// Narrated by al-Bukhari.
+// The Prophet ﷺ was the best of mankind.
+```
+
+<Info>
+The `replaceSalutationsWithSymbol` function recognizes over 130 different variations of salutations, including:
+- Multiple Arabic patterns (primary, alternative, salawat, and reverse forms)
+- Various Latin transliteration schemes
+- Common English abbreviations and phrases
+- Parenthetical and standalone forms
+</Info>
+
+## Performance considerations
+
+The function uses an efficient multi-pass approach:
+
+1. Parenthetical patterns (contextual)
+2. Abbreviations (exact matches)
+3. Latin transliterations (token-based FSM)
+4. Arabic patterns (token-based matching)
+5. English phrases
+6. Symbol cleanup
+
+This order ensures accurate replacement while maintaining good performance even on large texts.
+
+<Note>
+Whitespace is normalized but line breaks are preserved, so the function works correctly with both single-line and multi-line text.
+</Note>

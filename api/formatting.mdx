@@ -1,0 +1,500 @@
+---
+title: Formatting utilities
+description: Functions for formatting text, managing line breaks, handling punctuation, cleaning whitespace, and applying typography rules.
+---
+
+## Line breaks and newlines
+
+### insertLineBreaksAfterPunctuation
+
+Adds line breaks after punctuation marks such as periods, exclamation points, and question marks.
+
+<Note>
+For the full preformatting pipeline in one pass (significantly faster and more memory-friendly on very large inputs), use `preformatArabicText` from the preformat module.
+</Note>
+
+<ParamField path="text" type="string">
+  The input text containing punctuation
+</ParamField>
+
+**Returns:** `string` - The modified text with line breaks added after punctuation.
+
+```typescript
+insertLineBreaksAfterPunctuation("Text."); // "Text.\n"
+```
+
+### cleanLiteralNewLines
+
+Replaces literal new line characters (\n) and carriage returns (\r) with actual line breaks.
+
+<ParamField path="text" type="string">
+  The input text containing literal new lines
+</ParamField>
+
+**Returns:** `string` - The modified text with actual line breaks.
+
+```typescript
+cleanLiteralNewLines("A\\nB"); // "A\nB"
+```
+
+### cleanMultilines
+
+Removes horizontal whitespace (spaces, tabs, non-breaking spaces) from the beginning and end of each line, while preserving line breaks (\n and \r).
+
+Handles various types of horizontal whitespace:
+- Regular spaces (U+0020)
+- Tabs (U+0009)
+- Non-breaking spaces (U+00A0)
+- Other Unicode horizontal whitespace characters
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with horizontal whitespace trimmed from each line.
+
+```typescript
+cleanMultilines("  line1  \n  line2  "); // "line1\nline2"
+cleanMultilines("\t\tindented\t\t"); // "indented"
+cleanMultilines("text\n \n \n"); // "text\n\n\n"
+```
+
+### reduceMultilineBreaksToDouble
+
+Reduces multiple consecutive line breaks (3 or more) to exactly 2 line breaks.
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with condensed line breaks.
+
+```typescript
+reduceMultilineBreaksToDouble("Line 1\n\n\n\nLine 2"); // "Line 1\n\nLine 2"
+```
+
+### reduceMultilineBreaksToSingle
+
+Reduces multiple consecutive line breaks (2 or more) to exactly 1 line break.
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with condensed line breaks.
+
+```typescript
+reduceMultilineBreaksToSingle("Line 1\n\nLine 2"); // "Line 1\nLine 2"
+```
+
+## Punctuation and spacing
+
+### addSpaceBeforeAndAfterPunctuation
+
+Adds spaces before and after punctuation, except for certain cases like quoted text or ayah references.
+
+<ParamField path="text" type="string">
+  The input text containing punctuation
+</ParamField>
+
+**Returns:** `string` - The modified text with spaces added before and after punctuation.
+
+```typescript
+addSpaceBeforeAndAfterPunctuation("Text,word"); // "Text, word"
+```
+
+### cleanSpacesBeforePeriod
+
+Cleans unnecessary spaces before punctuation marks such as periods, commas, and question marks.
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with cleaned spaces before punctuation.
+
+```typescript
+cleanSpacesBeforePeriod("This is a sentence , with extra space .");
+// "This is a sentence, with extra space."
+```
+
+### removeRedundantPunctuation
+
+Removes redundant punctuation marks that follow Arabic question marks or exclamation marks. This function cleans up text by removing periods (.) or Arabic commas (،) that immediately follow Arabic question marks (؟) or exclamation marks (!), as they are considered redundant in proper Arabic punctuation.
+
+<ParamField path="text" type="string">
+  The Arabic text to clean up
+</ParamField>
+
+**Returns:** `string` - The text with redundant punctuation removed.
+
+```typescript
+removeRedundantPunctuation("كيف حالك؟."); // "كيف حالك؟"
+removeRedundantPunctuation("ممتاز!،"); // "ممتاز!"
+removeRedundantPunctuation("هذا جيد."); // "هذا جيد." (unchanged)
+```
+
+### normalizeSpaces
+
+Reduces multiple spaces or tabs to a single space.
+
+<ParamField path="text" type="string">
+  The input text containing extra spaces
+</ParamField>
+
+**Returns:** `string` - The modified text with reduced spaces.
+
+```typescript
+normalizeSpaces("This   is a   text"); // "This is a text"
+```
+
+### normalizeSlashInReferences
+
+Removes unnecessary spaces around slashes in references.
+
+<ParamField path="text" type="string">
+  The input text containing references
+</ParamField>
+
+**Returns:** `string` - The modified text with spaces removed around slashes.
+
+```typescript
+normalizeSlashInReferences("127 / 11"); // "127/11"
+```
+
+## Condensing and cleaning
+
+### condenseAsterisks
+
+Condenses multiple asterisks (*) into a single one.
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with condensed asterisks.
+
+```typescript
+condenseAsterisks("***"); // "*"
+```
+
+### condenseColons
+
+Replaces occurrences of colons surrounded by periods (e.g., '.:.' or ':') with a single colon.
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with condensed colons.
+
+```typescript
+condenseColons("This.:. is a test"); // "This: is a test"
+```
+
+### condenseDashes
+
+Condenses two or more dashes (--) into a single dash (-).
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with condensed dashes.
+
+```typescript
+condenseDashes("This is some ---- text"); // "This is some - text"
+```
+
+### condenseEllipsis
+
+Replaces sequences of two or more periods (e.g., '...') with an ellipsis character (…).
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with ellipses condensed.
+
+```typescript
+condenseEllipsis("This is a test..."); // "This is a test…"
+```
+
+### condensePeriods
+
+Condenses multiple periods separated by spaces (e.g., '. . .') into a single period.
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with condensed periods.
+
+```typescript
+condensePeriods("This . . . is a test"); // "This. is a test"
+```
+
+### condenseUnderscores
+
+Condenses multiple underscores (__) or Arabic Tatweel characters (ـــــ) into a single underscore or Tatweel.
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with condensed underscores.
+
+```typescript
+condenseUnderscores("This is ـــ some text __"); // "This is ـ some text _"
+```
+
+## Quotes and brackets
+
+### applySmartQuotes
+
+Turns regular double quotes surrounding a body of text into smart quotes. Also fixes incorrect starting quotes by ensuring the string starts with an opening quote if needed.
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with smart quotes applied.
+
+```typescript
+applySmartQuotes('The "quick brown" fox'); // 'The "quick brown" fox'
+```
+
+### doubleToSingleBrackets
+
+Replaces double parentheses or brackets with single ones.
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with condensed brackets.
+
+```typescript
+doubleToSingleBrackets("((text))"); // "(text)"
+```
+
+### ensureSpaceBeforeBrackets
+
+Ensures at most 1 space exists before any word before brackets. Adds a space if there isn't one, or reduces multiple spaces to one.
+
+<ParamField path="text" type="string">
+  The input text to modify
+</ParamField>
+
+**Returns:** `string` - The modified text with proper spacing before brackets.
+
+```typescript
+ensureSpaceBeforeBrackets("word(content)"); // "word (content)"
+```
+
+### ensureSpaceBeforeQuotes
+
+Ensures at most 1 space exists before any word before Arabic quotation marks. Adds a space if there isn't one, or reduces multiple spaces to one.
+
+<ParamField path="text" type="string">
+  The input text to modify
+</ParamField>
+
+**Returns:** `string` - The modified text with proper spacing before Arabic quotes.
+
+```typescript
+ensureSpaceBeforeQuotes("word«content»"); // "word «content»"
+```
+
+### fixBracketTypos
+
+Fixes common bracket and quotation mark typos in text. Corrects malformed patterns like "(«", "»)", and misplaced digits in brackets.
+
+<ParamField path="text" type="string">
+  Input text that may contain bracket typos
+</ParamField>
+
+**Returns:** `string` - Text with corrected bracket and quotation mark combinations.
+
+```typescript
+fixBracketTypos("(«text»)"); // "«text»"
+fixBracketTypos(")123)"); // "(123)"
+```
+
+### fixCurlyBraces
+
+Fixes mismatched curly braces by converting incorrect bracket/brace combinations to proper curly braces { }.
+
+<ParamField path="text" type="string">
+  Input text that may contain mismatched curly braces
+</ParamField>
+
+**Returns:** `string` - Text with corrected curly brace pairs.
+
+```typescript
+fixCurlyBraces("(content}"); // "{content}"
+fixCurlyBraces("{content)"); // "{content}"
+```
+
+### fixMismatchedQuotationMarks
+
+Fixes mismatched quotation marks in Arabic text by converting various incorrect bracket/quote combinations to proper Arabic quotation marks (« »).
+
+<ParamField path="text" type="string">
+  Input text that may contain mismatched quotation marks
+</ParamField>
+
+**Returns:** `string` - Text with corrected Arabic quotation marks.
+
+```typescript
+fixMismatchedQuotationMarks("«text)"); // "«text»"
+fixMismatchedQuotationMarks("(text»"); // "«text»"
+```
+
+### removeSpaceInsideBrackets
+
+Removes spaces inside brackets, parentheses, or square brackets.
+
+<ParamField path="text" type="string">
+  The input text with spaces inside brackets
+</ParamField>
+
+**Returns:** `string` - The modified text with spaces removed inside brackets.
+
+```typescript
+removeSpaceInsideBrackets("( a b )"); // "(a b)"
+```
+
+### replaceDoubleBracketsWithArrows
+
+Replaces double parentheses with Arabic quotation marks (arrows).
+
+<ParamField path="text" type="string">
+  The input text to apply the rule to
+</ParamField>
+
+**Returns:** `string` - The modified text with condensed brackets.
+
+```typescript
+replaceDoubleBracketsWithArrows("((text))"); // "«text»"
+```
+
+### trimSpaceInsideQuotes
+
+Removes unnecessary spaces inside quotes.
+
+<ParamField path="text" type="string">
+  The input text with spaces inside quotes
+</ParamField>
+
+**Returns:** `string` - The modified text with spaces removed inside quotes.
+
+```typescript
+trimSpaceInsideQuotes('" Text "'); // '"Text"'
+```
+
+## Text detection and analysis
+
+### hasWordInSingleLine
+
+Detects if a word is by itself in a line.
+
+<ParamField path="text" type="string">
+  The text to check
+</ParamField>
+
+**Returns:** `boolean` - True if there exists a word in any of the lines in the text that is by itself.
+
+### isOnlyPunctuation
+
+Checks if the input string consists of only punctuation characters.
+
+<ParamField path="text" type="string">
+  The input text to check
+</ParamField>
+
+**Returns:** `boolean` - Returns true if the string contains only punctuation, false otherwise.
+
+### isAllUppercase
+
+Detects if text is entirely in uppercase letters.
+
+<ParamField path="text" type="string">
+  The text to check
+</ParamField>
+
+**Returns:** `boolean` - True if all alphabetic characters are uppercase, false otherwise.
+
+```typescript
+isAllUppercase("HELLO WORLD"); // true
+isAllUppercase("Hello World"); // false
+isAllUppercase("123"); // false (no letters)
+```
+
+## Sentence and paragraph formatting
+
+### formatStringBySentence
+
+Formats a multiline string by joining sentences and maintaining footnotes on their own lines. Footnotes are identified by Arabic and English numerals.
+
+<ParamField path="input" type="string">
+  The input text containing sentences and footnotes
+</ParamField>
+
+**Returns:** `string` - The formatted text.
+
+```typescript
+formatStringBySentence("Sentence one.\n(1) A footnote.\nSentence two.");
+// Maintains footnotes on their own lines while joining regular sentences
+```
+
+## Styling and case conversion
+
+### stripBoldStyling
+
+Removes bold styling from text by normalizing the string and removing stylistic characters.
+
+<ParamField path="text" type="string">
+  The input text containing bold characters
+</ParamField>
+
+**Returns:** `string` - The modified text with bold styling removed.
+
+### stripItalicsStyling
+
+Removes italicized characters by replacing italic Unicode characters with their normal counterparts.
+
+<ParamField path="text" type="string">
+  The input text containing italicized characters
+</ParamField>
+
+**Returns:** `string` - The modified text with italics removed.
+
+```typescript
+stripItalicsStyling("𝘼𝘽𝘾"); // "ABC"
+```
+
+### stripStyling
+
+Removes all bold and italic styling from the input text.
+
+<ParamField path="text" type="string">
+  The input text to remove styling from
+</ParamField>
+
+**Returns:** `string` - The modified text with all styling removed.
+
+### toTitleCase
+
+Converts a string to title case (first letter of each word capitalized).
+
+<ParamField path="str" type="string">
+  The input string to convert
+</ParamField>
+
+**Returns:** `string` - String with each word's first letter capitalized.
+
+```typescript
+toTitleCase("hello world"); // "Hello World"
+toTitleCase("the quick brown fox"); // "The Quick Brown Fox"
+```

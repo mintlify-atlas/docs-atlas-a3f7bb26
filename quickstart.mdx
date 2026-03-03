@@ -1,80 +1,304 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get started with Bitaboom in minutes with practical examples for Arabic and bilingual text processing
 ---
 
-## Get started in three steps
+Bitaboom is a TypeScript-first string utility toolkit focused on Arabic and bilingual (Arabic ↔ English) publishing workflows. This guide will walk you through the most common use cases with real code examples.
 
-Get your documentation site running locally and make your first customization.
+## Installation
 
-### Step 1: Set up your local environment
+<Steps>
+  <Step title="Install Bitaboom">
+    Choose your preferred package manager:
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    <CodeGroup>
+      ```bash npm
+      npm install bitaboom
+      ```
 
-### Step 2: Deploy your changes
+      ```bash yarn
+      yarn add bitaboom
+      ```
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+      ```bash pnpm
+      pnpm add bitaboom
+      ```
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+      ```bash bun
+      bun add bitaboom
+      ```
+    </CodeGroup>
+  </Step>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+  <Step title="Import the functions you need">
+    Bitaboom exports are tree-shakeable, so you only bundle what you use:
 
-### Step 3: Go live
+    ```typescript
+    import { 
+      makeDiacriticInsensitiveRegex, 
+      removeMarkdownFormatting,
+      preformatArabicText,
+      estimateTokenCount,
+      LLMProvider
+    } from 'bitaboom';
+    ```
+  </Step>
+</Steps>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+## Core Features
 
-## Next steps
+### Diacritic-Insensitive Matching
 
-Now that you have your docs running, explore these key features:
+Build regular expressions that ignore Arabic diacritics, tatweel, and whitespace variants for flexible text search:
 
-<CardGroup cols={2}>
+```typescript
+import { makeDiacriticInsensitiveRegex } from 'bitaboom';
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
+// Create a regex that matches regardless of diacritics
+const pattern = makeDiacriticInsensitiveRegex('أنا إلى الآفاق');
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
+// Matches text without diacritics
+pattern.test('انا الي الافاق'); // true
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
+// Also handles tatweel (Arabic text elongation)
+pattern.test('أنــــا إلــــى الآفــــاق'); // true
+```
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
+<Tip>
+This is perfect for search functionality in Arabic text applications where users might not type diacritics consistently.
+</Tip>
 
-</CardGroup>
+### Remove Markdown Formatting
+
+Strip markdown syntax from text while preserving the actual content:
+
+```typescript
+import { removeMarkdownFormatting } from 'bitaboom';
+
+const markdown = '**Bold** _italic_ [link](https://example.com)';
+const plain = removeMarkdownFormatting(markdown);
+
+console.log(plain); // "Bold italic link"
+```
+
+Common use cases:
+- Extracting plain text from markdown documents
+- Preparing text for search indexing
+- Generating preview snippets
+
+### High-Performance Arabic Preformatting
+
+The `preformatArabicText` function is a single-pass optimizer for cleaning messy Arabic text, especially from OCR or scanned documents:
+
+<CodeGroup>
+  ```typescript Single String
+  import { preformatArabicText } from 'bitaboom';
+
+  const messy = 'بِسْمِ  اللَّهِ ( الرَّحْمَنِ ) 127 / 11 قَالَ ...';
+  const clean = preformatArabicText(messy);
+
+  // Fixes:
+  // - Multiple spaces → single space
+  // - Brackets spacing
+  // - Reference numbers
+  // - Ellipsis formatting
+  ```
+
+  ```typescript Batch Processing
+  import { preformatArabicText } from 'bitaboom';
+
+  const pages = [
+    'صفحة 1 بِسْمِ  اللَّهِ ...',
+    'صفحة 2 قَالَ  رَسُولُ ...',
+    'صفحة 3 اللَّهُمَّ  صَلِّ ...'
+  ];
+
+  // Process multiple strings efficiently
+  const cleaned = preformatArabicText(pages);
+  ```
+</CodeGroup>
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+The preformatter consolidates 30+ formatting operations into a single optimized pass. It handles spacing, punctuation, brackets, ellipses, references, and more.
 </Note>
+
+### LLM Token Estimation
+
+Accurately estimate token counts for Arabic text across different LLM providers. Arabic text uses approximately 3x more tokens than English due to BPE tokenization:
+
+<CodeGroup>
+  ```typescript Generic Estimation
+  import { estimateTokenCount } from 'bitaboom';
+
+  const text = 'بسم الله الرحمن الرحيم';
+  const tokens = estimateTokenCount(text);
+
+  console.log(`Estimated tokens: ${tokens}`);
+  ```
+
+  ```typescript OpenAI (GPT)
+  import { estimateTokenCount, LLMProvider } from 'bitaboom';
+
+  const text = 'بسم الله الرحمن الرحيم';
+  const tokens = estimateTokenCount(text, LLMProvider.OpenAI);
+
+  // Uses OpenAI's tiktoken characteristics
+  // ~1.3 Arabic characters per token
+  ```
+
+  ```typescript Google Gemini
+  import { estimateTokenCount, LLMProvider } from 'bitaboom';
+
+  const text = 'بسم الله الرحمن الرحيم';
+  const tokens = estimateTokenCount(text, LLMProvider.Gemini);
+
+  // Gemini is ~25% more efficient for Arabic
+  // ~1.6 Arabic characters per token
+  ```
+
+  ```typescript Anthropic Claude
+  import { estimateTokenCount, LLMProvider } from 'bitaboom';
+
+  const text = 'بسم الله الرحمن الرحيم';
+  const tokens = estimateTokenCount(text, LLMProvider.Claude);
+
+  // Claude is less efficient for Arabic
+  // ~1.1 Arabic characters per token
+  ```
+
+  ```typescript xAI Grok
+  import { estimateTokenCount, LLMProvider } from 'bitaboom';
+
+  const text = 'بسم الله الرحمن الرحيم';
+  const tokens = estimateTokenCount(text, LLMProvider.Grok);
+
+  // Similar to OpenAI
+  // ~1.3 Arabic characters per token
+  ```
+</CodeGroup>
+
+<Info>
+**Provider Efficiency Rankings:**
+- **Gemini**: Most efficient (~25% fewer tokens than OpenAI)
+- **OpenAI/Grok**: Standard BPE baseline
+- **Claude**: Least efficient for Arabic (uses ~20% more tokens)
+</Info>
+
+## Common Workflow Patterns
+
+### Clean and Search Arabic Text
+
+Combine preprocessing with search for robust Arabic text matching:
+
+```typescript
+import { 
+  preformatArabicText, 
+  makeDiacriticInsensitiveRegex 
+} from 'bitaboom';
+
+// Step 1: Clean the source text
+const rawText = 'بِسْمِ  اللَّهِ ( الرَّحْمَنِ  الرَّحِيمِ ) ...';
+const cleanText = preformatArabicText(rawText);
+
+// Step 2: Create flexible search pattern
+const searchPattern = makeDiacriticInsensitiveRegex('بسم الله');
+
+// Step 3: Search in cleaned text
+if (searchPattern.test(cleanText)) {
+  console.log('Found match!');
+}
+```
+
+### Prepare Text for LLM Processing
+
+Estimate tokens before sending to APIs to optimize costs and stay within limits:
+
+```typescript
+import { 
+  preformatArabicText, 
+  estimateTokenCount,
+  LLMProvider 
+} from 'bitaboom';
+
+// Clean the text first
+const rawArabic = 'نص عربي طويل جدا ...';
+const cleaned = preformatArabicText(rawArabic);
+
+// Estimate tokens for your provider
+const tokens = estimateTokenCount(cleaned, LLMProvider.OpenAI);
+
+// Check against model limits
+const MAX_TOKENS = 4096;
+if (tokens > MAX_TOKENS) {
+  console.warn(`Text exceeds limit: ${tokens}/${MAX_TOKENS} tokens`);
+  // Implement chunking strategy
+}
+```
+
+### Bilingual Document Processing
+
+Handle mixed Arabic and English content:
+
+```typescript
+import { 
+  removeMarkdownFormatting,
+  getArabicScore,
+  preformatArabicText 
+} from 'bitaboom';
+
+const bilingualText = `
+**بسم الله** - _In the name of Allah_
+قَالَ رَسُولُ اللَّهِ (ﷺ) - The Prophet said (peace be upon him)
+`;
+
+// Remove markdown formatting
+const plain = removeMarkdownFormatting(bilingualText);
+
+// Detect if text is primarily Arabic
+const arabicRatio = getArabicScore(plain);
+if (arabicRatio > 0.5) {
+  // Apply Arabic-specific formatting
+  const formatted = preformatArabicText(plain);
+  console.log(formatted);
+}
+```
+
+## Interactive Demo
+
+Explore all 80+ functions with live examples at [bitaboom.surge.sh](https://bitaboom.surge.sh)
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Arabic Utilities"
+    icon="language"
+    href="/api/arabic"
+  >
+    Diacritic handling, Urdu conversion, token estimation, and Arabic-specific text processing
+  </Card>
+
+  <Card
+    title="Formatting & Typography"
+    icon="text"
+    href="/api/formatting"
+  >
+    Smart quotes, punctuation spacing, bracket normalization, and 30+ typography helpers
+  </Card>
+
+  <Card
+    title="Sanitization"
+    icon="broom"
+    href="/api/sanitization"
+  >
+    Remove references, URLs, markdown, escaped spaces, and other noise from text
+  </Card>
+
+  <Card
+    title="Transliteration"
+    icon="spell-check"
+    href="/api/transliteration"
+  >
+    Normalize Arabic prefixes, clean up apostrophes, and replace salutations with ﷺ
+  </Card>
+</CardGroup>

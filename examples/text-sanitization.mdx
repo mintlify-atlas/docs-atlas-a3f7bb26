@@ -1,0 +1,346 @@
+---
+title: Text sanitization
+description: Examples of cleaning, sanitizing, and normalizing Arabic and mixed-language text
+---
+
+Bitaboom provides comprehensive functions for cleaning and sanitizing text, particularly useful for processing Arabic documents, hadith collections, and scholarly works.
+
+## Removing symbols and references
+
+### Cleaning part references
+
+Remove various symbols, part references, and numerical markers:
+
+```typescript
+import { cleanSymbolsAndPartReferences } from 'bitaboom';
+
+cleanSymbolsAndPartReferences('Another example [1] [1/2]');
+// Result: 'Another example  '
+
+cleanSymbolsAndPartReferences('Part references 1/2 2/3/4');
+// Result: 'Part references    '
+```
+
+### Removing trailing page numbers
+
+```typescript
+import { cleanTrailingPageNumbers } from 'bitaboom';
+
+cleanTrailingPageNumbers('This is some -[46]- text');
+// Result: 'This is some  text'
+```
+
+### Removing single digit references
+
+```typescript
+import { removeSingleDigitReferences } from 'bitaboom';
+
+removeSingleDigitReferences('Ref (1), Ref «2», Ref [3]');
+// Result: 'Ref , Ref , Ref '
+```
+
+## Text normalization
+
+### Replacing line breaks with spaces
+
+```typescript
+import { replaceLineBreaksWithSpaces } from 'bitaboom';
+
+replaceLineBreaksWithSpaces('a\nb');
+// Result: 'a b'
+```
+
+### Stripping digits
+
+```typescript
+import { stripAllDigits } from 'bitaboom';
+
+stripAllDigits('abcd245');
+// Result: 'abcd'
+```
+
+### Removing death year references
+
+```typescript
+import { removeDeathYear } from 'bitaboom';
+
+removeDeathYear('Sufyān ibn 'Uyaynah (d. 198h) said:');
+// Result: 'Sufyān ibn 'Uyaynah said:'
+
+removeDeathYear('Sufyān ibn 'Uyaynah [d. 200H] said:');
+// Result: 'Sufyān ibn 'Uyaynah said:'
+```
+
+<Note>
+The `removeDeathYear` function only removes the abbreviated form `(d. XXXh)` or `[d. XXXh]`, not the full word "died" to avoid false positives.
+</Note>
+
+## Markdown formatting removal
+
+Strip Markdown syntax while preserving the content:
+
+```typescript
+import { removeMarkdownFormatting } from 'bitaboom';
+
+removeMarkdownFormatting('This is **bold** text');
+// Result: 'This is bold text'
+
+removeMarkdownFormatting('This is *italic* text');
+// Result: 'This is italic text'
+
+removeMarkdownFormatting('# Header 1');
+// Result: 'Header 1'
+
+removeMarkdownFormatting('- Item 1');
+// Result: 'Item 1'
+```
+
+### Complex Markdown
+
+```typescript
+const input = `# Title
+- Item 1
+- Item 2
+This is **bold** and *italic*`;
+
+const expected = `Title
+Item 1
+Item 2
+This is bold and italic`;
+
+removeMarkdownFormatting(input);
+// Result: expected
+```
+
+## Text truncation
+
+### Simple truncation
+
+```typescript
+import { truncate } from 'bitaboom';
+
+truncate('123456', 5);
+// Result: '1234…'
+
+truncate('test'); // Default max: 150
+// Result: 'test'
+```
+
+### Middle truncation
+
+Preserve both start and end of text:
+
+```typescript
+import { truncateMiddle } from 'bitaboom';
+
+truncateMiddle('The quick brown fox jumps right over the lazy dog', 20);
+// Result: 'The quick bro…zy dog'
+
+truncateMiddle('The quick brown fox jumps right over the lazy dog', 25, 8);
+// Result: 'The quick brown …lazy dog'
+```
+
+<Tabs>
+  <Tab title="Default behavior">
+    ```typescript
+    // End length defaults to 1/3 of max length (minimum 3)
+    truncateMiddle('abcdefghijklmnopqrstuvwxyz', 15);
+    // Result: 'abcdefghi…vwxyz'
+    ```
+  </Tab>
+  <Tab title="Custom end length">
+    ```typescript
+    // Preserve exactly 3 characters at the end
+    truncateMiddle('abcdefghijklmnopqrstuvwxyz', 10, 3);
+    // Result: 'abcdef…xyz'
+    ```
+  </Tab>
+</Tabs>
+
+## URL removal
+
+```typescript
+import { removeUrls } from 'bitaboom';
+
+removeUrls('It should remove both https://abc.com and http://google.com from this');
+// Result: 'It should remove both  and  from this'
+```
+
+## Cleaning escaped spaces
+
+Useful for processing file paths:
+
+```typescript
+import { unescapeSpaces } from 'bitaboom';
+
+unescapeSpaces('My\\ Folder\\ Name');
+// Result: 'My Folder Name'
+
+unescapeSpaces('  /path/to/My\\ Document.txt  ');
+// Result: '/path/to/My Document.txt'
+```
+
+## Diacritic-insensitive pattern generation
+
+Create regex patterns that match Arabic text regardless of diacritics:
+
+```typescript
+import { makeDiacriticInsensitive } from 'bitaboom';
+
+const pattern = makeDiacriticInsensitive('مرحبا');
+const regex = new RegExp(pattern);
+
+regex.test('مرحبا'); // true (original)
+regex.test('مرحبأ'); // true (different alif variant)
+regex.test('مَرْحَبَا'); // true (with diacritics)
+```
+
+### Character equivalences
+
+The pattern handles common Arabic character variants:
+
+```typescript
+// Alif variants: ا, آ, أ, إ
+const pattern1 = makeDiacriticInsensitive('ا');
+const pattern2 = makeDiacriticInsensitive('آ');
+// Both create: '[\u0627\u0622\u0623\u0625][\u064B...]*'
+
+// Ta marbuta ↔ ha: ة ↔ ه
+const pattern3 = makeDiacriticInsensitive('ة');
+const pattern4 = makeDiacriticInsensitive('ه');
+// Both create: '[\u0629\u0647][\u064B...]*'
+
+// Ya variants: ى ↔ ي
+const pattern5 = makeDiacriticInsensitive('ى');
+const pattern6 = makeDiacriticInsensitive('ي');
+// Both create: '[\u0649\u064A][\u064B...]*'
+```
+
+## Comprehensive example
+
+Combine multiple sanitization functions:
+
+```typescript
+import {
+  cleanSymbolsAndPartReferences,
+  removeDeathYear,
+  removeMarkdownFormatting,
+  replaceSalutationsWithSymbol,
+  unescapeSpaces,
+  removeUrls
+} from 'bitaboom';
+
+function sanitizeScholarlyText(text: string): string {
+  let result = text;
+  
+  // Remove URLs
+  result = removeUrls(result);
+  
+  // Clean escaped spaces
+  result = unescapeSpaces(result);
+  
+  // Remove Markdown formatting
+  result = removeMarkdownFormatting(result);
+  
+  // Replace salutations
+  result = replaceSalutationsWithSymbol(result);
+  
+  // Remove death year references
+  result = removeDeathYear(result);
+  
+  // Clean symbols and references
+  result = cleanSymbolsAndPartReferences(result);
+  
+  return result.trim();
+}
+
+const rawText = `
+# Scholar Biography
+
+Imām al-Bukhārī (d. 256H) compiled the most authentic hadith collection.
+The Prophet **sallallahu alayhi wasallam** said...
+
+Reference: [1] See https://example.com for more.
+`;
+
+const cleaned = sanitizeScholarlyText(rawText);
+console.log(cleaned);
+// Output:
+// Scholar Biography
+// Imām al-Bukhārī compiled the most authentic hadith collection.
+// The Prophet ﷺ said...
+// Reference:  See  for more.
+```
+
+## Whitespace normalization
+
+### Zero-width characters
+
+The diacritic functions automatically handle zero-width joiners:
+
+```typescript
+const textWithZWJ = 'مر\u200Dحبا';
+const textWithZWNJ = 'مر\u200Cحبا';
+const normalText = 'مرحبا';
+
+const result1 = makeDiacriticInsensitive(textWithZWJ);
+const result2 = makeDiacriticInsensitive(textWithZWNJ);
+const result3 = makeDiacriticInsensitive(normalText);
+
+// All three produce the same pattern
+result1 === result3; // true
+result2 === result3; // true
+```
+
+### Collapsing whitespace
+
+Multiple spaces are automatically normalized:
+
+```typescript
+const result1 = makeDiacriticInsensitive('مرحبا   بكم');
+const result2 = makeDiacriticInsensitive('مرحبا بكم');
+// Both produce the same pattern (spaces collapsed)
+result1 === result2; // true
+```
+
+## Special characters handling
+
+### Escaping regex metacharacters
+
+```typescript
+const result = makeDiacriticInsensitive('test.+*?');
+// Special regex chars are escaped: 'test\\.\\+\\*\\?'
+```
+
+### Mixed content
+
+```typescript
+const result = makeDiacriticInsensitive('hello مرحبا');
+// Pattern handles both Latin and Arabic characters
+const regex = new RegExp(result);
+
+regex.test('hello مرحبا'); // true
+regex.test('hello مَرْحَبَا'); // true
+```
+
+<Info>
+All sanitization functions handle edge cases like empty strings, null values, and Unicode normalization (NFC) to ensure consistent results.
+</Info>
+
+## Performance tips
+
+1. **Chain operations efficiently**: Apply the most selective filters first
+2. **Use specialized functions**: `stripAllDigits` is faster than a generic regex for removing numbers
+3. **Cache regex patterns**: When using `makeDiacriticInsensitive`, cache the resulting regex for reuse
+4. **Consider input size**: Functions like `truncate` and `truncateMiddle` are useful for limiting processing overhead
+
+```typescript
+// Good: Cache the regex
+const searchRegex = new RegExp(makeDiacriticInsensitive('search term'));
+largeArray.filter(item => searchRegex.test(item));
+
+// Less efficient: Recreate regex each time
+largeArray.filter(item => 
+  new RegExp(makeDiacriticInsensitive('search term')).test(item)
+);
+```

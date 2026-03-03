@@ -1,0 +1,95 @@
+---
+title: Cleaning utilities
+description: Functions for removing tags, building flexible Arabic search patterns, and escaping regular expressions.
+---
+
+## escapeRegex
+
+Escape a string so it can be safely embedded into a RegExp source.
+
+<ParamField path="s" type="string">
+  Any string
+</ParamField>
+
+**Returns:** `string` - Escaped string safe for use in regular expressions.
+
+```typescript
+escapeRegex("Hello (world)"); // "Hello \\(world\\)"
+escapeRegex("$100.50"); // "\\$100\\.50"
+```
+
+## makeDiacriticInsensitiveRegex
+
+Build a **diacritic-insensitive**, **tatweel-tolerant** RegExp for Arabic text matching.
+
+**Features:**
+- Optional character equivalences: ا~أ~إ~آ, ة~ه, ى~ي
+- Optional tolerance for tatweel between characters
+- Optional diacritic-insensitivity (by inserting a diacritics class after each char)
+- Optional flexible whitespace (needle whitespace becomes `\s+`)
+
+<ParamField path="needle" type="string" required>
+  The Arabic text to match
+</ParamField>
+
+<ParamField path="opts" type="MakeRegexOptions">
+  Configuration options for the regex pattern
+</ParamField>
+
+### MakeRegexOptions
+
+<ParamField path="equivalences" type="EquivOptions">
+  Character equivalences to allow. Default: `{ alif: true, taMarbutahHa: true, alifMaqsurahYa: true }`
+  
+  - `alif` (boolean): Treat ا/أ/إ/آ as equivalent. Default: true
+  - `taMarbutahHa` (boolean): Treat ة/ه as equivalent. Default: true
+  - `alifMaqsurahYa` (boolean): Treat ى/ي as equivalent. Default: true
+</ParamField>
+
+<ParamField path="allowTatweel" type="boolean" default="true">
+  Allow tatweel between letters (tolerate decorative elongation)
+</ParamField>
+
+<ParamField path="ignoreDiacritics" type="boolean" default="true">
+  Ignore diacritics by inserting a `DIACRITICS_CLASS*` after each letter
+</ParamField>
+
+<ParamField path="flexWhitespace" type="boolean" default="true">
+  Treat any whitespace in the needle as `\s+` for flexible matching
+</ParamField>
+
+<ParamField path="flags" type="string" default="'u'">
+  RegExp flags to use
+</ParamField>
+
+**Returns:** `RegExp` - A RegExp matching the needle with the desired tolerances.
+
+```typescript
+const rx = makeDiacriticInsensitiveRegex('أنا إلى الآفاق');
+rx.test('انا الي الافاق'); // true
+rx.test('اَنا إلى الآفاق'); // true
+
+// Custom options
+const strictRx = makeDiacriticInsensitiveRegex('أنا', {
+  equivalences: { alif: false, taMarbutahHa: false, alifMaqsurahYa: false },
+  ignoreDiacritics: false,
+  allowTatweel: false
+});
+```
+
+## removeAllTags
+
+Remove simple HTML/XML-like tags from a string.
+
+This is intentionally lightweight and does not attempt to parse HTML; it simply drops substrings that look like `<...>`.
+
+<ParamField path="content" type="string">
+  Input string
+</ParamField>
+
+**Returns:** `string` - String with tags removed.
+
+```typescript
+removeAllTags("<p>Hello <strong>world</strong></p>"); // "Hello world"
+removeAllTags("<div>Text</div>"); // "Text"
+```
