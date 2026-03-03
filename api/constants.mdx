@@ -1,0 +1,132 @@
+---
+title: Constants
+description: Exported constants and regular expressions for Arabic text processing
+---
+
+## Overview
+
+The constants module exports useful regular expressions and symbols for Arabic text processing.
+
+## PATTERN_ENDS_WITH_PUNCTUATION
+
+Regular expression to match punctuation at the end of a string.
+
+<ParamField path="PATTERN_ENDS_WITH_PUNCTUATION" type="RegExp">
+  Pattern: `/[.!?؟؛]$/`
+  
+  Matches period (.), exclamation mark (!), question mark (?), Arabic question mark (؟), or Arabic semicolon (؛) at the end of a string.
+</ParamField>
+
+**Example**
+
+```typescript
+import { PATTERN_ENDS_WITH_PUNCTUATION } from 'bitaboom';
+
+console.log(PATTERN_ENDS_WITH_PUNCTUATION.test('Hello world.')); // true
+console.log(PATTERN_ENDS_WITH_PUNCTUATION.test('مرحبا؟')); // true
+console.log(PATTERN_ENDS_WITH_PUNCTUATION.test('No punctuation')); // false
+```
+
+## SALUTATION_SYMBOL
+
+The Unicode symbol (ﷺ) used to represent Islamic salutations.
+
+<ParamField path="SALUTATION_SYMBOL" type="string">
+  Value: `'ﷺ'` (U+FDFA)
+  
+  This symbol represents "peace be upon him" (PBUH) and is used by `replaceSalutationsWithSymbol`.
+</ParamField>
+
+**Example**
+
+```typescript
+import { SALUTATION_SYMBOL } from 'bitaboom';
+
+console.log(SALUTATION_SYMBOL); // ﷺ
+```
+
+## ARABIC_DIACRITICS_REGEX
+
+Regular expression to match Arabic diacritical marks (tashkeel/harakāt).
+
+<ParamField path="ARABIC_DIACRITICS_REGEX" type="RegExp">
+  Pattern: `/[\u064B-\u0652\u0670\u0617-\u061A\u06D6-\u06ED]/g`
+  
+  Matches all Arabic diacritics including fatha, damma, kasra, sukun, shadda, tanween, and others.
+</ParamField>
+
+**Example**
+
+```typescript
+import { ARABIC_DIACRITICS_REGEX } from 'bitaboom';
+
+const text = 'بِسْمِ اللَّهِ';
+const withoutDiacritics = text.replace(ARABIC_DIACRITICS_REGEX, '');
+console.log(withoutDiacritics); // بسم الله
+```
+
+## ABBREVIATION_REGEX
+
+Regular expression for matching common salutation abbreviations.
+
+<ParamField path="ABBREVIATION_REGEX" type="RegExp">
+  Internal regex used by `replaceSalutationsWithSymbol` to match abbreviations like PBUH, SAW, SAWS, etc.
+</ParamField>
+
+<Info>
+This constant is primarily used internally by the transliteration module.
+</Info>
+
+## ENGLISH_PHRASE_REGEX
+
+Regular expression for matching English salutation phrases.
+
+<ParamField path="ENGLISH_PHRASE_REGEX" type="RegExp">
+  Internal regex used by `replaceSalutationsWithSymbol` to match English phrases like "peace be upon him", "may Allah bless him", etc.
+</ParamField>
+
+<Info>
+This constant is primarily used internally by the transliteration module.
+</Info>
+
+## PARENTHETICAL_REGEX
+
+Regular expression for matching parenthetical salutation forms.
+
+<ParamField path="PARENTHETICAL_REGEX" type="RegExp">
+  Internal regex used by `replaceSalutationsWithSymbol` to match salutations enclosed in parentheses.
+</ParamField>
+
+<Info>
+This constant is primarily used internally by the transliteration module.
+</Info>
+
+## SYMBOL_CLEANUP_REGEX
+
+Regular expression for cleaning up dashes around the salutation symbol.
+
+<ParamField path="SYMBOL_CLEANUP_REGEX" type="RegExp">
+  Pattern: `/[‒–—―-][ \t]*ﷺ[ \t]*[‒–—―-]?|ﷺ[ \t]*[‒–—―-]/g`
+  
+  Matches various dash characters around the ﷺ symbol for cleanup purposes.
+</ParamField>
+
+**Example**
+
+```typescript
+import { SYMBOL_CLEANUP_REGEX } from 'bitaboom';
+
+const text = '— ﷺ —';
+const cleaned = text.replace(SYMBOL_CLEANUP_REGEX, 'ﷺ');
+console.log(cleaned); // ﷺ
+```
+
+## Usage notes
+
+<Note>
+Most of these constants are exported for advanced use cases. For common tasks, use the higher-level functions like `replaceSalutationsWithSymbol` or `makeDiacriticInsensitiveRegex` instead.
+</Note>
+
+<Tip>
+The regex constants are compiled once and can be reused efficiently across multiple operations.
+</Tip>

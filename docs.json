@@ -62,7 +62,9 @@
               "api/parsing",
               "api/sanitization",
               "api/transliteration",
-              "api/preformat"
+              "api/preformat",
+              "api/constants",
+              "api/utilities"
             ]
           }
         ]

@@ -1,0 +1,178 @@
+---
+title: Utilities
+description: Helper utility functions for character detection and text analysis
+---
+
+## Overview
+
+The utilities module exports helper functions for character type detection, primarily used internally but available for advanced use cases.
+
+## isArabicDiacritic
+
+Check if a character is an Arabic diacritic (tashkeel/harakāt).
+
+<ParamField path="char" type="string" required>
+  A single character to test
+</ParamField>
+
+**Returns:** `boolean` - `true` if the character is an Arabic diacritic
+
+**Example**
+
+```typescript
+import { isArabicDiacritic } from 'bitaboom';
+
+console.log(isArabicDiacritic('َ')); // true (fatha)
+console.log(isArabicDiacritic('ِ')); // true (kasra)
+console.log(isArabicDiacritic('ّ')); // true (shadda)
+console.log(isArabicDiacritic('ب')); // false (letter ba)
+console.log(isArabicDiacritic('a')); // false (Latin letter)
+```
+
+**Detected diacritics**
+
+This function detects all Arabic diacritical marks including:
+- Short vowels: fatha (َ), damma (ُ), kasra (ِ)
+- Sukun (ْ)
+- Shadda (ّ)
+- Tanween marks
+- Other diacritics in the Unicode ranges U+064B-U+0652, U+0670, U+0617-U+061A, U+06D6-U+06ED
+
+## isArabicLetter
+
+Check if a character is an Arabic letter.
+
+<ParamField path="char" type="string" required>
+  A single character to test
+</ParamField>
+
+**Returns:** `boolean` - `true` if the character is an Arabic letter
+
+**Example**
+
+```typescript
+import { isArabicLetter } from 'bitaboom';
+
+console.log(isArabicLetter('ب')); // true
+console.log(isArabicLetter('ا')); // true
+console.log(isArabicLetter('ع')); // true
+console.log(isArabicLetter('َ')); // false (diacritic)
+console.log(isArabicLetter('a')); // false (Latin letter)
+console.log(isArabicLetter('5')); // false (digit)
+```
+
+**Detected letters**
+
+This function detects Arabic letters in the Unicode range U+0621-U+064A, which includes:
+- All basic Arabic letters (ا-ي)
+- Hamza variants
+- Common Arabic letter forms
+
+## isLatinLetter
+
+Check if a character is a Latin letter.
+
+<ParamField path="char" type="string" required>
+  A single character to test
+</ParamField>
+
+**Returns:** `boolean` - `true` if the character is a Latin letter (a-z, A-Z)
+
+**Example**
+
+```typescript
+import { isLatinLetter } from 'bitaboom';
+
+console.log(isLatinLetter('a')); // true
+console.log(isLatinLetter('Z')); // true
+console.log(isLatinLetter('ب')); // false (Arabic letter)
+console.log(isLatinLetter('5')); // false (digit)
+console.log(isLatinLetter(' ')); // false (space)
+```
+
+**Detected letters**
+
+This function detects:
+- Lowercase letters: a-z
+- Uppercase letters: A-Z
+
+<Note>
+This function does NOT include Latin letters with diacritics (ā, ī, ū, etc.). It only matches basic ASCII letters.
+</Note>
+
+## Common use cases
+
+### Analyzing text composition
+
+```typescript
+import { isArabicLetter, isLatinLetter, isArabicDiacritic } from 'bitaboom';
+
+function analyzeText(text: string) {
+  let arabicLetters = 0;
+  let latinLetters = 0;
+  let diacritics = 0;
+  
+  for (const char of text) {
+    if (isArabicDiacritic(char)) diacritics++;
+    else if (isArabicLetter(char)) arabicLetters++;
+    else if (isLatinLetter(char)) latinLetters++;
+  }
+  
+  return { arabicLetters, latinLetters, diacritics };
+}
+
+console.log(analyzeText('بِسْمِ اللَّهِ'));
+// { arabicLetters: 7, latinLetters: 0, diacritics: 5 }
+
+console.log(analyzeText('Hello مرحبا'));
+// { arabicLetters: 5, latinLetters: 5, diacritics: 0 }
+```
+
+### Stripping diacritics while preserving letters
+
+```typescript
+import { isArabicDiacritic } from 'bitaboom';
+
+function stripDiacritics(text: string): string {
+  return Array.from(text)
+    .filter(char => !isArabicDiacritic(char))
+    .join('');
+}
+
+console.log(stripDiacritics('بِسْمِ اللَّهِ')); // بسم الله
+```
+
+### Detecting script type
+
+```typescript
+import { isArabicLetter, isLatinLetter } from 'bitaboom';
+
+function detectScript(text: string): 'arabic' | 'latin' | 'mixed' | 'other' {
+  let hasArabic = false;
+  let hasLatin = false;
+  
+  for (const char of text) {
+    if (isArabicLetter(char)) hasArabic = true;
+    if (isLatinLetter(char)) hasLatin = true;
+  }
+  
+  if (hasArabic && hasLatin) return 'mixed';
+  if (hasArabic) return 'arabic';
+  if (hasLatin) return 'latin';
+  return 'other';
+}
+
+console.log(detectScript('مرحبا')); // arabic
+console.log(detectScript('Hello')); // latin
+console.log(detectScript('Hello مرحبا')); // mixed
+```
+
+## Performance notes
+
+<Info>
+These functions are optimized for single-character checks. For analyzing entire strings, consider using higher-level functions like `getArabicScore` from the arabic module.
+</Info>
+
+<Tip>
+When processing large amounts of text, cache the results if you're checking the same characters repeatedly.
+</Tip>
