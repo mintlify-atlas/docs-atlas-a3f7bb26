@@ -1,0 +1,87 @@
+{
+  "projectType": "sdk-library",
+  "projectName": "Bitaboom",
+  "projectDescription": "TypeScript-first string utility toolkit focused on Arabic and bilingual (Arabic ↔ English) text formatting and processing.",
+  "theme": "palm",
+  "primaryColor": "#2E7D32",
+  "lightColor": "#66BB6A",
+  "darkColor": "#1B5E20",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/arabic-text-processing",
+              "guides/formatting-typography",
+              "guides/token-estimation",
+              "guides/preformatting-pipeline"
+            ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "examples/diacritic-matching",
+              "examples/salutation-replacement",
+              "examples/text-sanitization"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core Modules",
+            "pages": [
+              "api/arabic",
+              "api/cleaning",
+              "api/formatting",
+              "api/parsing",
+              "api/sanitization",
+              "api/transliteration",
+              "api/preformat"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Diacritic-insensitive Arabic text matching and regex generation",
+    "Single-pass Arabic preformatting pipeline optimized for large datasets",
+    "Rich typography normalizers for punctuation, quotes, brackets, and whitespace",
+    "LLM-aware token estimation supporting OpenAI, Gemini, Claude, and Grok",
+    "Transliteration cleanup and salutation normalization for classical Islamic texts",
+    "Sanitization pipelines for removing references, URLs, and markdown artifacts"
+  ],
+  "publicApiSurface": [
+    "makeDiacriticInsensitiveRegex",
+    "preformatArabicText",
+    "estimateTokenCount",
+    "replaceSalutationsWithSymbol",
+    "arabicNumeralToNumber",
+    "getArabicScore",
+    "removeMarkdownFormatting",
+    "applySmartQuotes",
+    "normalizeArabicPrefixesToAl",
+    "parsePageRanges",
+    "isBalanced",
+    "normalizeJsonSyntax",
+    "toTitleCase",
+    "truncate",
+    "truncateMiddle",
+    "condenseEllipsis",
+    "cleanSymbolsAndPartReferences"
+  ]
+}
